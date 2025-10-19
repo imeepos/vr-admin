@@ -14,7 +14,7 @@ export interface UploadedFile {
 
 @Injectable()
 export class FileUploadService {
-  private readonly uploadDir = './public/uploads';
+  private readonly uploadDir = join(process.cwd(), 'public', 'uploads');
   private readonly baseUrl = 'http://localhost:3002';
 
   constructor() {
@@ -61,6 +61,7 @@ export class FileUploadService {
   }
 
   private async saveFile(buffer: Buffer, filename: string): Promise<string> {
+    await this.ensureUploadDir();
     const filePath = join(this.uploadDir, filename);
     await fs.writeFile(filePath, buffer);
     return filePath;

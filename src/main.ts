@@ -1,14 +1,17 @@
-import { NestFactory } from '@nestjs/core';
+﻿import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { json, urlencoded } from 'express';
+import { join } from 'path';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
+  const uploadsPath = join(__dirname, '..', 'public', 'uploads');
 
   // CORS 配置 - 支持nginx代理和本地开发
   const corsOptions: CorsOptions = {
@@ -35,6 +38,11 @@ async function bootstrap() {
   };
 
   app.enableCors(corsOptions);
+
+  // 静态资源映射，将上传文件暴露为 /uploads/*
+  app.useStaticAssets(uploadsPath, {
+    prefix: '/uploads/',
+  });
 
   // 添加 GraphQL 文件上传中间件处理 multipart/form-data 请求
   // 必须在其他 body parser 之前，以确保它先处理 multipart 请求
@@ -87,3 +95,5 @@ async function bootstrap() {
   console.log(`💡 管理员账号将通过 migration 自动创建 (admin/admin123)`);
 }
 bootstrap();
+
+
