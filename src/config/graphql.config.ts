@@ -98,5 +98,10 @@ query GetModels {
     includeStacktraceInErrorResponses: isDevelopment,
     playground: playgroundConfig,
     context: ({ req, res }) => ({ req, res }),
+    uploads: {
+      maxFileSize: 200 * 1024 * 1024, // 200MB
+      maxFiles: 1,
+    },
+    resolvers: { Upload: GraphQLUpload },
   };
 };

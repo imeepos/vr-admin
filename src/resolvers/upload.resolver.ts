@@ -1,13 +1,42 @@
-import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, ObjectType, Field } from '@nestjs/graphql';
 import { FileUploadService, UploadedFile as UploadedFileType } from '../upload/file-upload.service';
 import { GraphQLUpload } from 'graphql-upload/GraphQLUpload.mjs';
 
-// 声明 UploadResult 类型
+@ObjectType()
+class GraphQLUploadedFile {
+  @Field()
+  filename: string;
+
+  @Field()
+  originalName: string;
+
+  @Field()
+  mimetype: string;
+
+  @Field()
+  size: number;
+
+  @Field()
+  path: string;
+
+  @Field()
+  url: string;
+}
+
+@ObjectType()
+class UploadResult {
+  @Field()
+  success: boolean;
+
+  @Field(() => GraphQLUploadedFile, { nullable: true })
+  file?: GraphQLUploadedFile;
+}
+
 @Resolver()
 export class UploadResolver {
   constructor(private readonly fileUploadService: FileUploadService) {}
 
-  @Mutation(() => Object, { name: 'uploadImage' })
+  @Mutation(() => UploadResult, { name: 'uploadImage' })
   async uploadImage(@Args('file', { type: () => GraphQLUpload }) file: Promise<any>) {
     const { filename, mimetype, createReadStream } = await file;
 
@@ -37,7 +66,7 @@ export class UploadResolver {
     }
   }
 
-  @Mutation(() => Object, { name: 'uploadVideo' })
+  @Mutation(() => UploadResult, { name: 'uploadVideo' })
   async uploadVideo(@Args('file', { type: () => GraphQLUpload }) file: Promise<any>) {
     const { filename, mimetype, createReadStream } = await file;
 
@@ -67,7 +96,7 @@ export class UploadResolver {
     }
   }
 
-  @Mutation(() => Object, { name: 'uploadModel' })
+  @Mutation(() => UploadResult, { name: 'uploadModel' })
   async uploadModel(@Args('file', { type: () => GraphQLUpload }) file: Promise<any>) {
     const { filename, mimetype, createReadStream } = await file;
 
