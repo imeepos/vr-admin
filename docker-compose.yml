@@ -31,9 +31,9 @@ services:
       - uploads_data:/app/uploads
     networks:
       - vr-admin-network
-    # 暴露端口仅用于内部网络通信
-    expose:
-      - "3002"
+    # 暴露端口用于外部访问和前端 codegen
+    ports:
+      - "${APP_PORT:-3002}:3002"
 
   # 前端 Nginx 服务
   frontend:

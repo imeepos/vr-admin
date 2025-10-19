@@ -1,0 +1,89 @@
+# 标量类型
+scalar DateTime
+scalar UUID
+
+# 用户类型
+type User {
+  id: ID!
+  username: String!
+  email: String
+  name: String!
+  avatar: String
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+# 模型类型
+type Model {
+  id: ID!
+  uuid: String!
+  title: String!
+  description: String
+  backgroundImage: String
+  backgroundVideo: String
+  isActive: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+  createdBy: User
+}
+
+# 输入类型
+input CreateUserInput {
+  username: String!
+  email: String
+  name: String!
+  password: String!
+  avatar: String
+}
+
+input UpdateUserInput {
+  username: String
+  email: String
+  name: String
+  avatar: String
+  isActive: Boolean
+}
+
+input CreateModelInput {
+  title: String!
+  description: String
+  backgroundImage: String
+  backgroundVideo: String
+  isActive: Boolean
+}
+
+input UpdateModelInput {
+  title: String
+  description: String
+  backgroundImage: String
+  backgroundVideo: String
+  isActive: Boolean
+}
+
+# 查询类型
+type Query {
+  # 用户查询
+  users: [User!]!
+  user(id: ID!): User
+
+  # 模型查询
+  models: [Model!]!
+  model(id: ID!): Model
+  modelByUuid(uuid: String!): Model
+}
+
+# 变更类型
+type Mutation {
+  # 用户变更
+  createUser(input: CreateUserInput!): User!
+  updateUser(id: ID!, input: UpdateUserInput!): User
+  deleteUser(id: ID!): Boolean!
+
+  # 模型变更
+  createModel(createModelInput: CreateModelInput!): Model!
+  updateModel(id: ID!, updateModelInput: UpdateModelInput!): Model
+  deleteModel(id: ID!): Boolean!
+  hardDeleteModel(id: ID!): Boolean!
+}

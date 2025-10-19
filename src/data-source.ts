@@ -6,4 +6,4 @@ export const AppDataSource = new DataSource({
     entities: ["dist/entities/*.js"],
     migrations: ["dist/migrations/*.js"],
     subscribers: ["dist/subscribers/*.js"],
-});
+} as any);
