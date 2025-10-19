@@ -1,3 +1,6 @@
+# 基础 GraphQL Schema
+# 由系统自动生成，基于后端实体定义
+
 # 标量类型
 scalar DateTime
 scalar UUID
@@ -64,11 +67,8 @@ input UpdateModelInput {
 
 # 查询类型
 type Query {
-  # 用户查询
   users: [User!]!
   user(id: ID!): User
-
-  # 模型查询
   models: [Model!]!
   model(id: ID!): Model
   modelByUuid(uuid: String!): Model
@@ -76,12 +76,9 @@ type Query {
 
 # 变更类型
 type Mutation {
-  # 用户变更
   createUser(input: CreateUserInput!): User!
   updateUser(id: ID!, input: UpdateUserInput!): User
   deleteUser(id: ID!): Boolean!
-
-  # 模型变更
   createModel(createModelInput: CreateModelInput!): Model!
   updateModel(id: ID!, updateModelInput: UpdateModelInput!): Model
   deleteModel(id: ID!): Boolean!
