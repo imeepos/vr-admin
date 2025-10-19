@@ -71,7 +71,6 @@ export function DashboardLayout() {
             <div className="px-8 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="h-px bg-gradient-to-r from-blue-500 to-purple-600 w-12" />
                   <h2 className="text-2xl font-bold text-gray-800">
                     {isActivePath('/dashboard/models') ? '模型管理' : '控制台'}
                   </h2>
