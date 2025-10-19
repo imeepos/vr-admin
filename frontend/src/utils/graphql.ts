@@ -1,5 +1,4 @@
 import { GraphQLClient } from 'graphql-request';
-import { extractFiles } from 'extract-files';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/';
 
@@ -54,28 +53,30 @@ export const uploadRequest = async (document: string, variables?: any) => {
   const token = localStorage.getItem('auth-token');
 
   try {
-    // 提取文件
-    const { clone, files } = extractFiles(variables);
+    const hasFiles = Object.values(variables || {}).some(
+      (value) => value instanceof File
+    );
 
-    if (files.size > 0) {
+    if (hasFiles) {
       // 如果有文件，使用 multipart/form-data
       const formData = new FormData();
 
       // 添加操作信息
       formData.append('operations', JSON.stringify({
         query: document,
-        variables: clone
+        variables
       }));
 
       // 添加文件映射
       const map: Record<string, string[]> = {};
       let fileIndex = 0;
 
-      files.forEach((paths: string[], file: File) => {
-        const fileKey = `variables${paths.join('.')}`;
-        map[fileIndex.toString()] = [fileKey];
-        formData.append(fileIndex.toString(), file);
-        fileIndex++;
+      Object.entries(variables || {}).forEach(([key, value]) => {
+        if (value instanceof File) {
+          map[fileIndex.toString()] = [`variables.${key}`];
+          formData.append(fileIndex.toString(), value);
+          fileIndex++;
+        }
       });
 
       formData.append('map', JSON.stringify(map));
