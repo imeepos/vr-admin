@@ -32,9 +32,9 @@ export class CreateAdminUser1698765432101 implements MigrationInterface {
         name,
         password,
         salt,
-        isActive,
-        createdAt,
-        updatedAt
+        "isActive",
+        "createdAt",
+        "updatedAt"
       ) VALUES ($1, $2, $3, $4, $5, $6, now(), now())
     `, [
       adminUsername,
