@@ -7,7 +7,7 @@ export class CreateInitialTables1698765432100 implements MigrationInterface {
 
     // 创建 users 表
     await queryRunner.query(`
-      CREATE TABLE "user" (
+      CREATE TABLE IF NOT EXISTS "user" (
         "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
         "username" character varying(255) NOT NULL,
         "email" character varying(255) NULL,
@@ -27,7 +27,7 @@ export class CreateInitialTables1698765432100 implements MigrationInterface {
 
     // 创建 models 表
     await queryRunner.query(`
-      CREATE TABLE "model" (
+      CREATE TABLE IF NOT EXISTS "model" (
         "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
         "uuid" character varying(255) NOT NULL,
         "title" character varying(255) NOT NULL,
@@ -43,11 +43,11 @@ export class CreateInitialTables1698765432100 implements MigrationInterface {
     `);
 
     // 创建索引以提高查询性能
-    await queryRunner.query(`CREATE INDEX "IDX_USER_USERNAME" ON "user" ("username")`);
-    await queryRunner.query(`CREATE INDEX "IDX_USER_EMAIL" ON "user" ("email")`);
-    await queryRunner.query(`CREATE INDEX "IDX_USER_IS_ACTIVE" ON "user" ("isActive")`);
-    await queryRunner.query(`CREATE INDEX "IDX_MODEL_UUID" ON "model" ("uuid")`);
-    await queryRunner.query(`CREATE INDEX "IDX_MODEL_IS_ACTIVE" ON "model" ("isActive")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_USER_USERNAME" ON "user" ("username")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_USER_EMAIL" ON "user" ("email")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_USER_IS_ACTIVE" ON "user" ("isActive")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_MODEL_UUID" ON "model" ("uuid")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_MODEL_IS_ACTIVE" ON "model" ("isActive")`);
 
     // 创建触发器以自动更新 updatedAt 字段
     await queryRunner.query(`
@@ -61,13 +61,13 @@ export class CreateInitialTables1698765432100 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      CREATE TRIGGER "user_updated_at"
+      CREATE TRIGGER IF NOT EXISTS "user_updated_at"
       BEFORE UPDATE ON "user"
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
     `);
 
     await queryRunner.query(`
-      CREATE TRIGGER "model_updated_at"
+      CREATE TRIGGER IF NOT EXISTS "model_updated_at"
       BEFORE UPDATE ON "model"
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
     `);
