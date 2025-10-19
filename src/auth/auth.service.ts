@@ -19,6 +19,7 @@ export class AuthService {
         { username, isActive: true },
         { email: username, isActive: true },
       ],
+      select: ['id', 'username', 'email', 'name', 'password', 'salt', 'avatar', 'sessions', 'isActive', 'createdAt', 'updatedAt'],
     });
 
     if (!user) {
