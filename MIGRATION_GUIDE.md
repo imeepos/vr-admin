@@ -1,8 +1,8 @@
-# TypeORM Migration 和管理员账号使用指南
+# TypeORM Migration 使用指南
 
 ## 概述
 
-本项目已配置完整的 TypeORM migration 系统和自动管理员账号初始化功能。
+本项目使用完整的 TypeORM migration 系统管理数据库结构变更，包括表结构创建、索引、约束以及初始管理员账号。
 
 ## 管理员账号
 
@@ -12,6 +12,8 @@
 - **邮箱**: `admin@vr-admin.local`
 - **姓名**: `系统管理员`
 
+管理员账号通过 migration 自动创建，具有幂等性（不会重复创建）。
+
 ### 自定义管理员账号
 可以通过环境变量自定义管理员账号信息：
 
@@ -20,20 +22,25 @@ ADMIN_USERNAME=your_admin_username
 ADMIN_PASSWORD=your_admin_password
 ADMIN_EMAIL=admin@yourdomain.com
 ADMIN_NAME=管理员姓名
-ENABLE_ADMIN_SEEDER=true
 ```
+
+## Migration 文件
+
+### 当前 Migrations
+1. `1698765432100-CreateInitialTables.ts` - 创建基础表结构（user, model）
+2. `1698765432101-CreateAdminUser.ts` - 创建管理员账号
 
 ## Migration 命令
 
 ### 开发环境
 ```bash
-# 生成新的 migration
+# 生成新的 migration（基于实体变更）
 pnpm run migration:generate --name=CreateNewTable
 
 # 创建空的 migration 文件
 pnpm run migration:create --name=CustomMigration
 
-# 运行 migrations
+# 运行所有待执行的 migrations
 pnpm run migration:run
 
 # 回滚最后一个 migration
@@ -62,14 +69,15 @@ pnpm run docker:down
 ## 配置说明
 
 ### 数据库配置
-- `synchronize: false` - 使用 migrations 替代自动同步
+- `synchronize: false` - 使用 migrations 替代自动同步（生产安全）
 - `migrationsRun: true` - 开发环境自动运行 migrations
 - `migrations: ['dist/migrations/*.js']` - migration 文件路径
 
-### 管理员初始化
-- 仅在开发环境或 `ENABLE_ADMIN_SEEDER=true` 时运行
-- 具有幂等性：重复启动不会创建重复账号
-- 使用 bcryptjs 进行密码加密
+### Migration 特点
+- **幂等性**: 管理员账号 migration 会检查账号是否已存在
+- **环境变量支持**: 管理员信息可通过环境变量配置
+- **密码加密**: 使用 bcryptjs 进行安全密码加密
+- **原生 SQL**: 所有 migrations 使用原生 SQL 语句，清晰可控
 
 ## WSL2 Docker 注意事项
 
@@ -91,8 +99,8 @@ pnpm run docker:down
    ```
 
 3. 应用启动时会自动：
-   - 运行数据库 migrations
-   - 创建管理员账号
+   - 运行数据库 migrations 创建表结构
+   - 通过 migration 创建管理员账号
    - 启动 GraphQL 服务
 
 4. 访问应用：
@@ -101,9 +109,17 @@ pnpm run docker:down
 
 ## 生产环境部署
 
-在生产环境中，建议：
+在生产环境中：
 
-1. 设置 `ENABLE_ADMIN_SEEDER=false`
-2. 手动运行 migrations：`pnpm run migration:run`
-3. 手动创建管理员账号或使用安全的方式初始化
-4. 使用强密码替换默认的 `admin123`
+1. **手动运行 migrations**: `pnpm run migration:run`
+2. **使用强密码**: 设置环境变量 `ADMIN_PASSWORD` 为安全密码
+3. **备份数据库**: 运行 migrations 前先备份数据库
+4. **测试 migration**: 在预发布环境先测试 migrations
+
+## Migration 最佳实践
+
+1. **原子性**: 每个 migration 应该是一个原子操作
+2. **可回滚**: 确保每个 migration 都有对应的 down 方法
+3. **幂等性**: 关键操作（如创建管理员账号）应该检查是否已存在
+4. **原生 SQL**: 优先使用原生 SQL 而非 TypeORM API，更加可控
+5. **命名规范**: 使用时间戳 + 描述性名称的文件命名

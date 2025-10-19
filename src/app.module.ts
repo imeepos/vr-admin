@@ -11,7 +11,6 @@ import { User } from './entities/user.entity';
 import { ModelModule } from './models/model.module';
 import { FileUploadModule } from './upload/file-upload.module';
 import { AuthModule } from './auth/auth.module';
-import { AdminSeederService } from './database/admin-seeder.service';
 import appConfig from './config/configuration';
 import databaseConfig from './config/database.config';
 import redisConfig from './config/redis.config';
@@ -47,6 +46,6 @@ import { GraphQLPlaygroundMiddleware } from './middleware/graphql-playground.mid
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, TestResolver, AdminSeederService],
+  providers: [AppService, TestResolver],
 })
 export class AppModule {}

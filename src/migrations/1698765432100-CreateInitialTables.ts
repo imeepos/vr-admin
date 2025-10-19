@@ -1,170 +1,88 @@
-import { MigrationInterface, QueryRunner, Table, Index, Unique } from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CreateInitialTables1698765432100 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // 启用 UUID 扩展
+    await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+
     // 创建 users 表
-    await queryRunner.createTable(
-      new Table({
-        name: 'user',
-        columns: [
-          {
-            name: 'id',
-            type: 'uuid',
-            isPrimary: true,
-            generationStrategy: 'uuid',
-            default: 'uuid_generate_v4()',
-          },
-          {
-            name: 'username',
-            type: 'varchar',
-            length: '255',
-            isUnique: true,
-          },
-          {
-            name: 'email',
-            type: 'varchar',
-            length: '255',
-            isUnique: true,
-            isNullable: true,
-          },
-          {
-            name: 'name',
-            type: 'varchar',
-            length: '255',
-          },
-          {
-            name: 'password',
-            type: 'varchar',
-            length: '255',
-          },
-          {
-            name: 'avatar',
-            type: 'varchar',
-            length: '255',
-            isNullable: true,
-          },
-          {
-            name: 'salt',
-            type: 'varchar',
-            length: '255',
-            isNullable: true,
-          },
-          {
-            name: 'sessions',
-            type: 'jsonb',
-            isNullable: true,
-          },
-          {
-            name: 'isActive',
-            type: 'boolean',
-            default: true,
-          },
-          {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-          },
-          {
-            name: 'updatedAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-            onUpdate: 'CURRENT_TIMESTAMP',
-          },
-        ],
-      }),
-      true
-    );
+    await queryRunner.query(`
+      CREATE TABLE "user" (
+        "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+        "username" character varying(255) NOT NULL,
+        "email" character varying(255) NULL,
+        "name" character varying(255) NOT NULL,
+        "password" character varying(255) NOT NULL,
+        "avatar" character varying(255) NULL,
+        "salt" character varying(255) NULL,
+        "sessions" jsonb NULL,
+        "isActive" boolean NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+        CONSTRAINT "UQ_user_username" UNIQUE ("username"),
+        CONSTRAINT "UQ_user_email" UNIQUE ("email"),
+        CONSTRAINT "PK_user_id" PRIMARY KEY ("id")
+      )
+    `);
 
     // 创建 models 表
-    await queryRunner.createTable(
-      new Table({
-        name: 'model',
-        columns: [
-          {
-            name: 'id',
-            type: 'uuid',
-            isPrimary: true,
-            generationStrategy: 'uuid',
-            default: 'uuid_generate_v4()',
-          },
-          {
-            name: 'uuid',
-            type: 'varchar',
-            length: '255',
-            isUnique: true,
-          },
-          {
-            name: 'title',
-            type: 'varchar',
-            length: '255',
-          },
-          {
-            name: 'description',
-            type: 'text',
-            isNullable: true,
-          },
-          {
-            name: 'backgroundImage',
-            type: 'varchar',
-            length: '255',
-            isNullable: true,
-          },
-          {
-            name: 'backgroundVideo',
-            type: 'varchar',
-            length: '255',
-            isNullable: true,
-          },
-          {
-            name: 'isActive',
-            type: 'boolean',
-            default: true,
-          },
-          {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-          },
-          {
-            name: 'updatedAt',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-            onUpdate: 'CURRENT_TIMESTAMP',
-          },
-        ],
-      }),
-      true
-    );
+    await queryRunner.query(`
+      CREATE TABLE "model" (
+        "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+        "uuid" character varying(255) NOT NULL,
+        "title" character varying(255) NOT NULL,
+        "description" text NULL,
+        "backgroundImage" character varying(255) NULL,
+        "backgroundVideo" character varying(255) NULL,
+        "isActive" boolean NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
+        CONSTRAINT "UQ_model_uuid" UNIQUE ("uuid"),
+        CONSTRAINT "PK_model_id" PRIMARY KEY ("id")
+      )
+    `);
 
     // 创建索引以提高查询性能
-    await queryRunner.createIndex(
-      'user',
-      new Index('IDX_USER_USERNAME', ['username'])
-    );
+    await queryRunner.query(`CREATE INDEX "IDX_USER_USERNAME" ON "user" ("username")`);
+    await queryRunner.query(`CREATE INDEX "IDX_USER_EMAIL" ON "user" ("email")`);
+    await queryRunner.query(`CREATE INDEX "IDX_USER_IS_ACTIVE" ON "user" ("isActive")`);
+    await queryRunner.query(`CREATE INDEX "IDX_MODEL_UUID" ON "model" ("uuid")`);
+    await queryRunner.query(`CREATE INDEX "IDX_MODEL_IS_ACTIVE" ON "model" ("isActive")`);
 
-    await queryRunner.createIndex(
-      'user',
-      new Index('IDX_USER_EMAIL', ['email'])
-    );
+    // 创建触发器以自动更新 updatedAt 字段
+    await queryRunner.query(`
+      CREATE OR REPLACE FUNCTION update_updated_at_column()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        NEW."updatedAt" = now();
+        RETURN NEW;
+      END;
+      $$ language 'plpgsql';
+    `);
 
-    await queryRunner.createIndex(
-      'user',
-      new Index('IDX_USER_IS_ACTIVE', ['isActive'])
-    );
+    await queryRunner.query(`
+      CREATE TRIGGER "user_updated_at"
+      BEFORE UPDATE ON "user"
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+    `);
 
-    await queryRunner.createIndex(
-      'model',
-      new Index('IDX_MODEL_UUID', ['uuid'])
-    );
-
-    await queryRunner.createIndex(
-      'model',
-      new Index('IDX_MODEL_IS_ACTIVE', ['isActive'])
-    );
+    await queryRunner.query(`
+      CREATE TRIGGER "model_updated_at"
+      BEFORE UPDATE ON "model"
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('model');
-    await queryRunner.dropTable('user');
+    // 删除触发器
+    await queryRunner.query(`DROP TRIGGER IF EXISTS "user_updated_at" ON "user"`);
+    await queryRunner.query(`DROP TRIGGER IF EXISTS "model_updated_at" ON "model"`);
+
+    // 删除函数
+    await queryRunner.query(`DROP FUNCTION IF EXISTS update_updated_at_column()`);
+
+    // 删除表（按照依赖关系的逆序）
+    await queryRunner.query(`DROP TABLE "model"`);
+    await queryRunner.query(`DROP TABLE "user"`);
   }
 }
