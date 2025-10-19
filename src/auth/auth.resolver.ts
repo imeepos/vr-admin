@@ -30,7 +30,8 @@ export class AuthResolver {
 
       return result;
     } catch (error) {
-      throw new UnauthorizedException(error.message);
+      const errorMessage = error?.message || '登录失败';
+      throw new UnauthorizedException(errorMessage);
     }
   }
 
@@ -74,7 +75,8 @@ export class AuthResolver {
         return result.token;
       }
     } catch (error) {
-      throw new UnauthorizedException('令牌刷新失败');
+      const errorMessage = error?.message || '令牌刷新失败';
+      throw new UnauthorizedException(errorMessage);
     }
   }
 }
