@@ -1,7 +1,6 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { FileUploadService, UploadedFile as UploadedFileType } from '../upload/file-upload.service';
-import { GraphQLUpload } from 'graphql-upload/GraphQLUpload.js';
-import { FileUpload } from 'graphql-upload/Upload.js';
+import { GraphQLUpload } from 'graphql-upload/GraphQLUpload.mjs';
 
 // 声明 UploadResult 类型
 @Resolver()
@@ -9,7 +8,7 @@ export class UploadResolver {
   constructor(private readonly fileUploadService: FileUploadService) {}
 
   @Mutation(() => Object, { name: 'uploadImage' })
-  async uploadImage(@Args('file', { type: () => GraphQLUpload }) file: Promise<FileUpload>) {
+  async uploadImage(@Args('file', { type: () => GraphQLUpload }) file: Promise<any>) {
     const { filename, mimetype, createReadStream } = await file;
 
     // 将 stream 转换为 buffer
@@ -39,7 +38,7 @@ export class UploadResolver {
   }
 
   @Mutation(() => Object, { name: 'uploadVideo' })
-  async uploadVideo(@Args('file', { type: () => GraphQLUpload }) file: Promise<FileUpload>) {
+  async uploadVideo(@Args('file', { type: () => GraphQLUpload }) file: Promise<any>) {
     const { filename, mimetype, createReadStream } = await file;
 
     // 将 stream 转换为 buffer
@@ -69,7 +68,7 @@ export class UploadResolver {
   }
 
   @Mutation(() => Object, { name: 'uploadModel' })
-  async uploadModel(@Args('file', { type: () => GraphQLUpload }) file: Promise<FileUpload>) {
+  async uploadModel(@Args('file', { type: () => GraphQLUpload }) file: Promise<any>) {
     const { filename, mimetype, createReadStream } = await file;
 
     // 将 stream 转换为 buffer
