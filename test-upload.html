@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraphQL File Upload Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            transition: border-color 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+        }
+        .upload-area.dragover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .file-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 GraphQL File Upload Test</h1>
+        <p>This page tests the GraphQL file upload functionality that was just fixed.</p>
+
+        <div class="upload-area" id="uploadArea">
+            <p>📁 Drag & drop a file here or click to select</p>
+            <input type="file" id="fileInput" style="display: none;" accept="image/*,video/*,.glb,.gltf">
+            <button onclick="document.getElementById('fileInput').click()">Choose File</button>
+        </div>
+
+        <div class="file-info" id="fileInfo"></div>
+
+        <button id="uploadBtn" onclick="uploadFile()" disabled>📤 Upload File</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInfo = document.getElementById('fileInfo');
+        const result = document.getElementById('result');
+
+        let selectedFile = null;
+
+        // Drag and drop handlers
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            selectedFile = file;
+            fileInfo.innerHTML = `
+                <strong>Selected file:</strong> ${file.name}<br>
+                <strong>Size:</strong> ${(file.size / 1024).toFixed(2)} KB<br>
+                <strong>Type:</strong> ${file.type || 'Unknown'}
+            `;
+            uploadBtn.disabled = false;
+        }
+
+        async function uploadFile() {
+            if (!selectedFile) {
+                alert('Please select a file first');
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = '⏳ Uploading...';
+            result.innerHTML = '';
+
+            try {
+                const operations = {
+                    query: `
+                        mutation UploadImage($file: Upload!) {
+                            uploadImage(file: $file) {
+                                success
+                                file {
+                                    id
+                                    filename
+                                    originalName
+                                    mimetype
+                                    size
+                                    url
+                                    path
+                                }
+                            }
+                        }
+                    `,
+                    variables: {
+                        file: {
+                            path: selectedFile.name,
+                            relativePath: selectedFile.name
+                        }
+                    }
+                };
+
+                const map = {
+                    "0": ["variables.file"]
+                };
+
+                const formData = new FormData();
+                formData.append('operations', JSON.stringify(operations));
+                formData.append('map', JSON.stringify(map));
+                formData.append('0', selectedFile);
+
+                const response = await fetch('http://localhost:3002/graphql', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        // Don't set Content-Type header, let browser set it with boundary
+                    }
+                });
+
+                const responseText = await response.text();
+
+                if (response.ok) {
+                    try {
+                        const resultData = JSON.parse(responseText);
+                        if (resultData.data?.uploadImage?.success) {
+                            result.className = 'result success';
+                            result.textContent = `✅ Upload successful!\n\n${JSON.stringify(resultData.data.uploadImage, null, 2)}`;
+                        } else {
+                            result.className = 'result error';
+                            result.textContent = `❌ Upload failed!\n\n${JSON.stringify(resultData, null, 2)}`;
+                        }
+                    } catch (parseError) {
+                        result.className = 'result error';
+                        result.textContent = `❌ Failed to parse response:\n\n${responseText}`;
+                    }
+                } else {
+                    result.className = 'result error';
+                    result.textContent = `❌ HTTP Error ${response.status}:\n\n${responseText}`;
+                }
+
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ Upload error:\n\n${error.message}`;
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '📤 Upload File';
+            }
+        }
+    </script>
+</body>
+</html>

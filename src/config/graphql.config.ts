@@ -99,5 +99,25 @@ query GetModels {
     playground: playgroundConfig,
     context: ({ req, res }) => ({ req, res }),
     resolvers: { Upload: GraphQLUpload },
+    // 确保请求体解析器正确配置
+    formatError: (error) => {
+      // 在开发环境中提供详细的错误信息
+      if (isDevelopment) {
+        console.error('GraphQL Error:', error);
+        return {
+          message: error.message,
+          locations: error.locations,
+          path: error.path,
+          extensions: error.extensions,
+        };
+      }
+      // 在生产环境中隐藏敏感错误信息
+      return {
+        message: error.message,
+        locations: error.locations,
+        path: error.path,
+        extensions: error.extensions,
+      };
+    },
   };
 };

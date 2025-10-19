@@ -78,8 +78,11 @@ When reviewing code:
 ### BEFORE ANY CODE CHANGE
 1. **Read Existing Code**: ALWAYS read the file first to understand current implementation
 2. **Environment Check**: Verify if this is WSL2 Docker environment (it is)
-3. **Docker Rebuild**: After ANY code changes, rebuild Docker images: `docker-compose build <service>`
-4. **Test Strategy**: Plan how to test within WSL2 Docker constraints
+3. **Build Process**: After code changes:
+   - Backend: `pnpm run build`
+   - Frontend: `cd frontend && pnpm run build`
+4. **Docker Rebuild**: Use `docker-compose build <service>` only when Docker configuration changes
+5. **Test Strategy**: Plan how to test within WSL2 Docker constraints
 
 ### ENVIRONMENTAL CONSTRAINTS
 - **NEVER use localhost for external access** - Will fail in WSL2
@@ -114,8 +117,12 @@ Remember: 你写的不是代码，是数字时代的文化遗产，是艺术品 
   - Direct `localhost` access may fail due to WSL2 networking
 - **Host Service Access**: For database or external services running on host, use `host.docker.internal:port` instead of `localhost:port`
 
-### Docker Development Workflow
-- **Code Changes**: ALWAYS rebuild Docker images after code changes: `docker-compose build <service>`
+### Development Workflow
+- **Code Changes**: After code changes, build the affected components:
+  - Backend changes: `pnpm run build`
+  - Frontend changes: `cd frontend && pnpm run build`
+  - Both: `pnpm run build:all`
+- **Docker Changes**: Use `docker-compose build <service>` only when Dockerfile or dependencies change
 - **Service Restart**: Use `docker-compose up -d <service>` to apply changes
 - **Verification**: Test changes using `docker exec` commands to verify functionality
 - **Container Access**: Use container names for inter-service communication (e.g., `backend:3002`)

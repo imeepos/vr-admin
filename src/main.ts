@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { json, urlencoded } from 'express';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 
 async function bootstrap() {
@@ -35,7 +36,34 @@ async function bootstrap() {
 
   app.enableCors(corsOptions);
 
+  // Express 5 需要明确的 body parser 配置
+  // 配置 JSON parser (跳过 multipart 请求)
+  app.use(json({
+    limit: '10mb',
+    verify: (req: any, res, buf) => {
+      // 如果是 multipart 请求，跳过 JSON 解析
+      req.rawBody = buf;
+      if (req.is('multipart/form-data')) {
+        return false;
+      }
+    },
+  }));
+
+  // 配置 URL-encoded parser (跳过 multipart 请求)
+  app.use(urlencoded({
+    extended: true,
+    limit: '10mb',
+    verify: (req: any, res, buf) => {
+      // 如果是 multipart 请求，跳过 URL-encoded 解析
+      req.rawBody = buf;
+      if (req.is('multipart/form-data')) {
+        return false;
+      }
+    },
+  }));
+
   // 添加 GraphQL 文件上传中间件处理 multipart/form-data 请求
+  // 必须在其他 body parser 之后，但在 GraphQL 之前
   app.use(graphqlUploadExpress({
     maxFileSize: 200 * 1024 * 1024, // 200MB
     maxFiles: 5,
