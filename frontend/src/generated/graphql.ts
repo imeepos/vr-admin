@@ -375,3 +375,55 @@ export const REFRESH_TOKEN_MUTATION = `
     }
   }
 `;
+
+// File Upload Mutations
+export const UPLOAD_IMAGE_MUTATION = `
+  mutation UploadImage($file: Upload!) {
+    uploadImage(file: $file) {
+      success
+      file {
+        id
+        filename
+        originalName
+        mimetype
+        size
+        url
+        path
+      }
+    }
+  }
+`;
+
+export const UPLOAD_VIDEO_MUTATION = `
+  mutation UploadVideo($file: Upload!) {
+    uploadVideo(file: $file) {
+      success
+      file {
+        id
+        filename
+        originalName
+        mimetype
+        size
+        url
+        path
+      }
+    }
+  }
+`;
+
+export const UPLOAD_MODEL_MUTATION = `
+  mutation UploadModel($file: Upload!) {
+    uploadModel(file: $file) {
+      success
+      file {
+        id
+        filename
+        originalName
+        mimetype
+        size
+        url
+        path
+      }
+    }
+  }
+`;

@@ -3,9 +3,11 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { GraphQLUpload } from 'graphql-upload/GraphQLUpload.js';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TestResolver } from './resolvers/test.resolver';
+import { UploadResolver } from './resolvers/upload.resolver';
 // import { UserResolver } from './resolvers/user.resolver';
 import { User } from './entities/user.entity';
 import { ModelModule } from './models/model.module';
@@ -46,6 +48,6 @@ import { GraphQLPlaygroundMiddleware } from './middleware/graphql-playground.mid
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, TestResolver],
+  providers: [AppService, TestResolver, UploadResolver],
 })
 export class AppModule {}

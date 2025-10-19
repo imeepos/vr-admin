@@ -5,6 +5,9 @@ import {
   CREATE_MODEL_MUTATION,
   UPDATE_MODEL_MUTATION,
   DELETE_MODEL_MUTATION,
+  UPLOAD_IMAGE_MUTATION,
+  UPLOAD_VIDEO_MUTATION,
+  UPLOAD_MODEL_MUTATION,
   type CreateModelInput,
   type UpdateModelInput
 } from '@/generated/graphql'
@@ -27,22 +30,17 @@ export const modelService = {
       description: data.description
     }
 
-    // Handle file uploads
+    // Handle file uploads using GraphQL
     if (data.backgroundImage) {
       if (typeof data.backgroundImage === 'string') {
         input.backgroundImage = data.backgroundImage
       } else {
-        // Upload image file and get the URL
-        const formData = new FormData()
-        formData.append('file', data.backgroundImage)
-        const uploadResponse = await fetch('/api/upload/image', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include'
+        // Upload image file using GraphQL mutation
+        const uploadResult = await uploadRequest(UPLOAD_IMAGE_MUTATION, {
+          file: data.backgroundImage
         })
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json()
-          input.backgroundImage = uploadResult.file.url
+        if (uploadResult.data?.uploadImage?.success) {
+          input.backgroundImage = uploadResult.data.uploadImage.file.url
         } else {
           throw new Error('Image upload failed')
         }
@@ -53,17 +51,12 @@ export const modelService = {
       if (typeof data.backgroundVideo === 'string') {
         input.backgroundVideo = data.backgroundVideo
       } else {
-        // Upload video file and get the URL
-        const formData = new FormData()
-        formData.append('file', data.backgroundVideo)
-        const uploadResponse = await fetch('/api/upload/video', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include'
+        // Upload video file using GraphQL mutation
+        const uploadResult = await uploadRequest(UPLOAD_VIDEO_MUTATION, {
+          file: data.backgroundVideo
         })
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json()
-          input.backgroundVideo = uploadResult.file.url
+        if (uploadResult.data?.uploadVideo?.success) {
+          input.backgroundVideo = uploadResult.data.uploadVideo.file.url
         } else {
           throw new Error('Video upload failed')
         }
@@ -74,17 +67,12 @@ export const modelService = {
       if (typeof data.modelFile === 'string') {
         input.modelFile = data.modelFile
       } else {
-        // Upload 3D model file and get the URL with metadata
-        const formData = new FormData()
-        formData.append('file', data.modelFile)
-        const uploadResponse = await fetch('/api/upload/model', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include'
+        // Upload 3D model file using GraphQL mutation
+        const uploadResult = await uploadRequest(UPLOAD_MODEL_MUTATION, {
+          file: data.modelFile
         })
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json()
-          const file = uploadResult.file
+        if (uploadResult.data?.uploadModel?.success) {
+          const file = uploadResult.data.uploadModel.file
           input.modelFile = file.url
           input.modelFileName = file.originalName
           input.modelFilePath = file.path
@@ -107,22 +95,17 @@ export const modelService = {
     if (data.title) input.title = data.title
     if (data.description) input.description = data.description
 
-    // Handle file updates
+    // Handle file updates using GraphQL
     if (data.backgroundImage) {
       if (typeof data.backgroundImage === 'string') {
         input.backgroundImage = data.backgroundImage
       } else {
-        // Upload image file and get the URL
-        const formData = new FormData()
-        formData.append('file', data.backgroundImage)
-        const uploadResponse = await fetch('/api/upload/image', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include'
+        // Upload image file using GraphQL mutation
+        const uploadResult = await uploadRequest(UPLOAD_IMAGE_MUTATION, {
+          file: data.backgroundImage
         })
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json()
-          input.backgroundImage = uploadResult.file.url
+        if (uploadResult.data?.uploadImage?.success) {
+          input.backgroundImage = uploadResult.data.uploadImage.file.url
         } else {
           throw new Error('Image upload failed')
         }
@@ -133,17 +116,12 @@ export const modelService = {
       if (typeof data.backgroundVideo === 'string') {
         input.backgroundVideo = data.backgroundVideo
       } else {
-        // Upload video file and get the URL
-        const formData = new FormData()
-        formData.append('file', data.backgroundVideo)
-        const uploadResponse = await fetch('/api/upload/video', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include'
+        // Upload video file using GraphQL mutation
+        const uploadResult = await uploadRequest(UPLOAD_VIDEO_MUTATION, {
+          file: data.backgroundVideo
         })
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json()
-          input.backgroundVideo = uploadResult.file.url
+        if (uploadResult.data?.uploadVideo?.success) {
+          input.backgroundVideo = uploadResult.data.uploadVideo.file.url
         } else {
           throw new Error('Video upload failed')
         }
@@ -154,17 +132,12 @@ export const modelService = {
       if (typeof data.modelFile === 'string') {
         input.modelFile = data.modelFile
       } else {
-        // Upload 3D model file and get the URL with metadata
-        const formData = new FormData()
-        formData.append('file', data.modelFile)
-        const uploadResponse = await fetch('/api/upload/model', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include'
+        // Upload 3D model file using GraphQL mutation
+        const uploadResult = await uploadRequest(UPLOAD_MODEL_MUTATION, {
+          file: data.modelFile
         })
-        if (uploadResponse.ok) {
-          const uploadResult = await uploadResponse.json()
-          const file = uploadResult.file
+        if (uploadResult.data?.uploadModel?.success) {
+          const file = uploadResult.data.uploadModel.file
           input.modelFile = file.url
           input.modelFileName = file.originalName
           input.modelFilePath = file.path

@@ -13,7 +13,7 @@ RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml ./
 
 # 安装后端依赖 (跳过 postinstall 脚本)
-RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm install --ignore-scripts
 
 # 复制前端配置
 COPY frontend/package.json frontend/pnpm-lock.yaml ./frontend/
@@ -45,7 +45,7 @@ RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml ./
 
 # 只安装生产依赖 (跳过 postinstall 脚本)
-RUN pnpm install --frozen-lockfile --prod --ignore-scripts
+RUN pnpm install --prod --ignore-scripts
 
 # 从构建阶段复制后端编译后的代码
 COPY --from=builder /app/dist ./dist
