@@ -14,7 +14,7 @@ export interface UploadedFile {
 
 @Injectable()
 export class FileUploadService {
-  private readonly uploadDir = join(process.cwd(), 'public', 'uploads');
+  private readonly uploadDir = join(__dirname, '..', '..', 'public', 'uploads');
   private readonly baseUrl = 'http://localhost:3002';
 
   constructor() {
@@ -157,3 +157,4 @@ export class FileUploadService {
     }
   }
 }
+
