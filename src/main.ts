@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -33,6 +34,12 @@ async function bootstrap() {
   };
 
   app.enableCors(corsOptions);
+
+  // 添加 GraphQL 文件上传中间件处理 multipart/form-data 请求
+  app.use(graphqlUploadExpress({
+    maxFileSize: 200 * 1024 * 1024, // 200MB
+    maxFiles: 5,
+  }));
 
   app.useGlobalPipes(
     new ValidationPipe({
