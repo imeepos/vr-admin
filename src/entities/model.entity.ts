@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Field, ObjectType, ID } from '@nestjs/graphql';
+import { User } from './user.entity';
 
 @ObjectType()
 @Entity()
@@ -39,4 +40,13 @@ export class Model {
   @Field()
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Field({ nullable: true })
+  @DeleteDateColumn()
+  deletedAt?: Date;
+
+  @Field(() => User, { nullable: true })
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  createdBy?: User;
 }
