@@ -242,8 +242,8 @@ export const GET_ME_QUERY = `
 `;
 
 export const CREATE_MODEL_MUTATION = `
-  mutation CreateModel($input: CreateModelInput!) {
-    createModel(input: $input) {
+  mutation CreateModel($createModelInput: CreateModelInput!) {
+    createModel(createModelInput: $createModelInput) {
       id
       uuid
       title
@@ -265,8 +265,8 @@ export const CREATE_MODEL_MUTATION = `
 `;
 
 export const UPDATE_MODEL_MUTATION = `
-  mutation UpdateModel($id: ID!, $input: UpdateModelInput!) {
-    updateModel(id: $id, input: $input) {
+  mutation UpdateModel($id: ID!, $updateModelInput: UpdateModelInput!) {
+    updateModel(id: $id, updateModelInput: $updateModelInput) {
       id
       uuid
       title
@@ -394,7 +394,6 @@ export const UPLOAD_IMAGE_MUTATION = `
     uploadImage(file: $file) {
       success
       file {
-        id
         filename
         originalName
         mimetype
@@ -411,7 +410,6 @@ export const UPLOAD_VIDEO_MUTATION = `
     uploadVideo(file: $file) {
       success
       file {
-        id
         filename
         originalName
         mimetype
@@ -428,7 +426,6 @@ export const UPLOAD_MODEL_MUTATION = `
     uploadModel(file: $file) {
       success
       file {
-        id
         filename
         originalName
         mimetype

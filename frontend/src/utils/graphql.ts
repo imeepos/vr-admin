@@ -53,33 +53,30 @@ export const uploadRequest = async (document: string, variables?: any) => {
   const token = localStorage.getItem('auth-token');
 
   try {
-    const hasFiles = Object.values(variables || {}).some(
-      (value) => value instanceof File
-    );
+    const variableEntries = Object.entries(variables || {});
+    const files = variableEntries.filter(([, value]) => value instanceof File);
+    const hasFiles = files.length > 0;
 
     if (hasFiles) {
-      // 如果有文件，使用 multipart/form-data
       const formData = new FormData();
-
-      // 添加操作信息
-      formData.append('operations', JSON.stringify({
-        query: document,
-        variables
-      }));
-
-      // 添加文件映射
+      const normalizedVariables: Record<string, any> = { ...(variables || {}) };
       const map: Record<string, string[]> = {};
-      let fileIndex = 0;
 
-      Object.entries(variables || {}).forEach(([key, value]) => {
-        if (value instanceof File) {
-          map[fileIndex.toString()] = [`variables.${key}`];
-          formData.append(fileIndex.toString(), value);
-          fileIndex++;
-        }
+      files.forEach(([key], index) => {
+        map[index.toString()] = [`variables.${key}`];
+        normalizedVariables[key] = null;
       });
 
+      formData.append('operations', JSON.stringify({
+        query: document,
+        variables: normalizedVariables,
+      }));
+
       formData.append('map', JSON.stringify(map));
+
+      files.forEach(([key, value], index) => {
+        formData.append(index.toString(), value as File);
+      });
 
       const headers: Record<string, string> = {};
       if (token) {
@@ -99,7 +96,6 @@ export const uploadRequest = async (document: string, variables?: any) => {
 
       return await response.json();
     } else {
-      // 如果没有文件，使用普通的 JSON 请求
       const headers: Record<string, string> = {};
       if (token) {
         headers.Authorization = `Bearer ${token}`;
@@ -120,3 +116,4 @@ export const uploadRequest = async (document: string, variables?: any) => {
     throw error;
   }
 };
+

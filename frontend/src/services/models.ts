@@ -85,7 +85,7 @@ export const modelService = {
       }
     }
 
-    const response = await uploadRequest(CREATE_MODEL_MUTATION, { input })
+    const response = await uploadRequest(CREATE_MODEL_MUTATION, { createModelInput: input })
     return response.createModel
   },
 
@@ -163,10 +163,10 @@ export const modelService = {
                    (data.modelFile && typeof data.modelFile !== 'string')
 
     if (hasFiles) {
-      const response = await uploadRequest(UPDATE_MODEL_MUTATION, { id, input })
+      const response = await uploadRequest(UPDATE_MODEL_MUTATION, { id, updateModelInput: input })
       return response.updateModel
     } else {
-      const response = await authenticatedRequest(UPDATE_MODEL_MUTATION, { id, input })
+      const response = await authenticatedRequest(UPDATE_MODEL_MUTATION, { id, updateModelInput: input })
       return response.updateModel
     }
   },
