@@ -1,6 +1,6 @@
 import { Resolver, Mutation, Args, ObjectType, Field } from '@nestjs/graphql';
 import { FileUploadService, UploadedFile as UploadedFileType } from '../upload/file-upload.service';
-import { GraphQLUpload } from 'graphql-upload/GraphQLUpload.mjs';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 
 @ObjectType()
 class GraphQLUploadedFile {

@@ -3,7 +3,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { GraphQLUpload } from 'graphql-upload/GraphQLUpload.mjs';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TestResolver } from './resolvers/test.resolver';

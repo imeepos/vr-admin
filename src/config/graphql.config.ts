@@ -1,6 +1,6 @@
 import { ApolloDriverConfig } from '@nestjs/apollo';
 import { ConfigService } from '@nestjs/config';
-import { GraphQLUpload } from 'graphql-upload/GraphQLUpload.mjs';
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 // import { ApolloServerPluginLandingPageGraphQLPlaygroundOptions } from '@apollo/server-plugin-landing-page-graphql-playground';
 
 /**
@@ -98,10 +98,6 @@ query GetModels {
     includeStacktraceInErrorResponses: isDevelopment,
     playground: playgroundConfig,
     context: ({ req, res }) => ({ req, res }),
-    uploads: {
-      maxFileSize: 200 * 1024 * 1024, // 200MB
-      maxFiles: 1,
-    },
     resolvers: { Upload: GraphQLUpload },
   };
 };
