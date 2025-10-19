@@ -19,7 +19,7 @@ export class AuthResolver {
       const result = await this.authService.login(input);
 
       // 设置 HTTP-only cookie
-      if (result) {
+      if (result && context?.res) {
         context.res.cookie('auth-token', result.token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
@@ -37,25 +37,27 @@ export class AuthResolver {
 
   @Mutation(() => Boolean)
   async logout(@Context() context: any) {
-    const user = context.req.user;
+    const user = context?.req?.user;
     if (user) {
       await this.authService.logout(user.id);
     }
 
     // 清除 cookie
-    context.res.clearCookie('auth-token');
+    if (context?.res) {
+      context.res.clearCookie('auth-token');
+    }
     return true;
   }
 
   @Query(() => User, { nullable: true })
   @UseGuards(AuthGuard)
   async me(@Context() context: any) {
-    return context.req.user;
+    return context?.req?.user;
   }
 
   @Mutation(() => String)
   async refreshToken(@Context() context: any) {
-    const token = context.req.cookies?.['auth-token'];
+    const token = context?.req?.cookies?.['auth-token'];
     if (!token) {
       throw new UnauthorizedException('未找到有效的令牌');
     }
@@ -64,7 +66,7 @@ export class AuthResolver {
       const result = await this.authService.refreshToken(token);
 
       // 更新 cookie
-      if (result) {
+      if (result && context?.res) {
         context.res.cookie('auth-token', result.token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',

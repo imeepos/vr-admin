@@ -96,5 +96,6 @@ query GetModels {
     path: `/${graphqlPath}`,
     includeStacktraceInErrorResponses: isDevelopment,
     playground: playgroundConfig,
+    context: ({ req, res }) => ({ req, res }),
   };
 };
