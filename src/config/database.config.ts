@@ -1,6 +1,7 @@
 import { registerAs } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { join } from 'path';
+import { Model } from '../entities/model.entity'
+import { User } from '../entities/user.entity'
 
 export default registerAs('database', (): TypeOrmModuleOptions => {
   return {
@@ -10,9 +11,11 @@ export default registerAs('database', (): TypeOrmModuleOptions => {
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'password',
     database: process.env.DB_DATABASE || 'vr_admin',
-    entities: [join(__dirname, '..', 'entities', '*.entity{.ts,.js}')],
-    synchronize: process.env.NODE_ENV !== 'production',
-    logging: process.env.NODE_ENV === 'development',
+    entities: [
+      User, Model
+    ],
+    synchronize: true,
+    logging: true,
     ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   };
 });

@@ -23,11 +23,11 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       proxy: {
         '/api': {
-          target: env.VITE_API_URL || 'http://localhost:3002',
+          target: 'http://localhost:3002/api',
           changeOrigin: true,
         },
         '/graphql': {
-          target: env.VITE_API_URL || 'http://localhost:3002',
+          target: 'http://localhost:3002/graphql',
           changeOrigin: true,
         },
       },

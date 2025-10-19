@@ -1,6 +1,7 @@
 import { Resolver, Mutation, Args, Query, Context } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { LoginInput } from '../dto/login.input';
+import { LoginResponse } from '../dto/login.response';
 import { User } from '../entities/user.entity';
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from './auth.guard';
@@ -9,13 +10,13 @@ import { AuthGuard } from './auth.guard';
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
-  @Mutation(() => User)
+  @Mutation(() => LoginResponse)
   async login(
-    @Args('loginInput') loginInput: LoginInput,
+    @Args('input') input: LoginInput,
     @Context() context: any,
   ) {
     try {
-      const result = await this.authService.login(loginInput);
+      const result = await this.authService.login(input);
 
       // 设置 HTTP-only cookie
       if (result) {
@@ -27,7 +28,7 @@ export class AuthResolver {
         });
       }
 
-      return result.user;
+      return result;
     } catch (error) {
       throw new UnauthorizedException(error.message);
     }

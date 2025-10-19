@@ -92,6 +92,7 @@ query GetModels {
     sortSchema: true,
     introspection: true,
     csrfPrevention: false,
+    graphiql: true,
     path: `/${graphqlPath}`,
     includeStacktraceInErrorResponses: isDevelopment,
     playground: playgroundConfig,
