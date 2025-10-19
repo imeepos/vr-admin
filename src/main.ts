@@ -36,13 +36,21 @@ async function bootstrap() {
 
   app.enableCors(corsOptions);
 
+  // 添加 GraphQL 文件上传中间件处理 multipart/form-data 请求
+  // 必须在其他 body parser 之前，以确保它先处理 multipart 请求
+  app.use(graphqlUploadExpress({
+    maxFileSize: 200 * 1024 * 1024, // 200MB
+    maxFiles: 5,
+  }));
+
   // Express 5 需要明确的 body parser 配置
   // 配置 JSON parser (跳过 multipart 请求)
   app.use(json({
     limit: '10mb',
     verify: (req: any, res, buf) => {
-      // 如果是 multipart 请求，跳过 JSON 解析
+      // 保存原始请求体用于调试
       req.rawBody = buf;
+      // 如果是 multipart 请求，跳过 JSON 解析（因为已经被 graphqlUploadExpress 处理）
       if (req.is('multipart/form-data')) {
         return false;
       }
@@ -54,19 +62,13 @@ async function bootstrap() {
     extended: true,
     limit: '10mb',
     verify: (req: any, res, buf) => {
-      // 如果是 multipart 请求，跳过 URL-encoded 解析
+      // 保存原始请求体用于调试
       req.rawBody = buf;
+      // 如果是 multipart 请求，跳过 URL-encoded 解析（因为已经被 graphqlUploadExpress 处理）
       if (req.is('multipart/form-data')) {
         return false;
       }
     },
-  }));
-
-  // 添加 GraphQL 文件上传中间件处理 multipart/form-data 请求
-  // 必须在其他 body parser 之后，但在 GraphQL 之前
-  app.use(graphqlUploadExpress({
-    maxFileSize: 200 * 1024 * 1024, // 200MB
-    maxFiles: 5,
   }));
 
   app.useGlobalPipes(
