@@ -1,0 +1,33 @@
+# 开发环境 Dockerfile
+FROM node:20-alpine AS development
+
+# 设置工作目录
+WORKDIR /app
+
+# 安装 pnpm
+RUN npm install -g pnpm
+
+# 复制根目录的 package.json 和 pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml ./
+
+# 安装依赖
+RUN pnpm install --frozen-lockfile
+
+# 复制前端配置
+COPY frontend/package.json frontend/pnpm-lock.yaml ./frontend/
+
+# 安装前端依赖
+RUN cd frontend && pnpm install --frozen-lockfile
+
+# 复制源代码
+COPY . .
+
+# 开发环境不需要构建，直接启动
+# 暴露端口
+EXPOSE 3001 9229
+
+# 设置环境变量
+ENV NODE_ENV=development
+
+# 启动开发服务器（支持热重载）
+CMD ["pnpm", "run", "start:dev"]

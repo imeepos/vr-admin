@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # NestJS 开发应用服务
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: vr-admin-app-dev
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3001}:3001"
+      - "9229:9229"  # Node.js 调试端口
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres-dev
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - DB_DATABASE=${DB_DATABASE:-vr_admin_dev}
+      - REDIS_HOST=redis-dev
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis123}
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - JWT_ISSUER=${JWT_ISSUER:-vr-admin}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-vr-admin-users}
+      - API_PREFIX=${API_PREFIX:-api}
+      - GRAPHQL_PATH=${GRAPHQL_PATH:-graphql}
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+      redis-dev:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - ./frontend/src:/app/frontend/src
+      - ./frontend/public:/app/frontend/public
+      - ./frontend/package.json:/app/frontend/package.json
+      - ./frontend/vite.config.ts:/app/frontend/vite.config.ts
+      - ./frontend/tsconfig.json:/app/frontend/tsconfig.json
+      - ./frontend/index.html:/app/frontend/index.html
+      - ./frontend/postcss.config.js:/app/frontend/postcss.config.js
+      - ./frontend/tailwind.config.js:/app/frontend/tailwind.config.js
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    networks:
+      - vr-admin-dev-network
+    command: pnpm run dev
+
+  # 前端开发服务（热重载）
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: vr-admin-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://app-dev:3001
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/postcss.config.js:/app/postcss.config.js
+      - ./frontend/tailwind.config.js:/app/tailwind.config.js
+    networks:
+      - vr-admin-dev-network
+    command: pnpm run dev
+
+  # PostgreSQL 开发数据库服务
+  postgres-dev:
+    image: postgres:16-alpine
+    container_name: vr-admin-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "${DB_DEV_PORT:-5433}:5432"
+    environment:
+      - POSTGRES_USER=${DB_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
+      - POSTGRES_DB=${DB_DATABASE:-vr_admin_dev}
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-vr_admin_dev}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vr-admin-dev-network
+
+  # Redis 开发缓存服务
+  redis-dev:
+    image: redis:7-alpine
+    container_name: vr-admin-redis-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_DEV_PORT:-6380}:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis123}
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - vr-admin-dev-network
+
+# 数据卷定义
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+
+# 网络定义
+networks:
+  vr-admin-dev-network:
+    driver: bridge

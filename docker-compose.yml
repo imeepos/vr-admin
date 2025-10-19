@@ -1,0 +1,107 @@
+services:
+  # 后端 API 服务
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    container_name: vr-admin-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - APP_PORT=3002
+      - DB_HOST=postgres
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USERNAME=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - DB_DATABASE=${DB_DATABASE:-vr_admin}
+      - REDIS_HOST=redis
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis123}
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - JWT_ISSUER=${JWT_ISSUER:-vr-admin}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-vr-admin-users}
+      - API_PREFIX=${API_PREFIX:-api}
+      - GRAPHQL_PATH=${GRAPHQL_PATH:-graphql}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - vr-admin-network
+    # 暴露端口仅用于内部网络通信
+    expose:
+      - "3002"
+
+  # 前端 Nginx 服务
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    container_name: vr-admin-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - uploads_data:/var/www/uploads:ro  # 只读挂载上传文件
+    depends_on:
+      - backend
+    networks:
+      - vr-admin-network
+
+  # PostgreSQL 数据库服务
+  postgres:
+    image: postgres:16-alpine
+    container_name: vr-admin-postgres
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${DB_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
+      - POSTGRES_DB=${DB_DATABASE:-vr_admin}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-vr_admin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vr-admin-network
+
+  # Redis 缓存服务 (可选)
+  redis:
+    image: redis:7-alpine
+    container_name: vr-admin-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis123}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - vr-admin-network
+
+# 数据卷定义
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+# 网络定义
+networks:
+  vr-admin-network:
+    driver: bridge
