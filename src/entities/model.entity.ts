@@ -29,6 +29,30 @@ export class Model {
   @Column({ nullable: true })
   backgroundVideo?: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  modelFile?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  modelFileName?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  modelFilePath?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  modelFileSize?: number;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  modelFileType?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  modelFileMimeType?: string;
+
   @Field()
   @Column({ default: true })
   isActive: boolean;

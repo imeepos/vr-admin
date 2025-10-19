@@ -21,7 +21,7 @@ export const modelService = {
   },
 
   async createModel(data: CreateModelInput) {
-    // Handle file uploads by converting File objects to base64 or using upload endpoint
+    // Handle file uploads by using the dedicated upload endpoint
     const input: any = {
       title: data.title,
       description: data.description
@@ -32,8 +32,20 @@ export const modelService = {
       if (typeof data.backgroundImage === 'string') {
         input.backgroundImage = data.backgroundImage
       } else {
-        // In a real implementation, you would upload the file first and get the URL
-        input.backgroundImage = data.backgroundImage.name
+        // Upload image file and get the URL
+        const formData = new FormData()
+        formData.append('file', data.backgroundImage)
+        const uploadResponse = await fetch('/api/upload/image', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        })
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json()
+          input.backgroundImage = uploadResult.file.url
+        } else {
+          throw new Error('Image upload failed')
+        }
       }
     }
 
@@ -41,7 +53,47 @@ export const modelService = {
       if (typeof data.backgroundVideo === 'string') {
         input.backgroundVideo = data.backgroundVideo
       } else {
-        input.backgroundVideo = data.backgroundVideo.name
+        // Upload video file and get the URL
+        const formData = new FormData()
+        formData.append('file', data.backgroundVideo)
+        const uploadResponse = await fetch('/api/upload/video', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        })
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json()
+          input.backgroundVideo = uploadResult.file.url
+        } else {
+          throw new Error('Video upload failed')
+        }
+      }
+    }
+
+    if (data.modelFile) {
+      if (typeof data.modelFile === 'string') {
+        input.modelFile = data.modelFile
+      } else {
+        // Upload 3D model file and get the URL with metadata
+        const formData = new FormData()
+        formData.append('file', data.modelFile)
+        const uploadResponse = await fetch('/api/upload/model', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        })
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json()
+          const file = uploadResult.file
+          input.modelFile = file.url
+          input.modelFileName = file.originalName
+          input.modelFilePath = file.path
+          input.modelFileSize = file.size
+          input.modelFileType = file.filename.split('.').pop()
+          input.modelFileMimeType = file.mimetype
+        } else {
+          throw new Error('3D model upload failed')
+        }
       }
     }
 
@@ -60,7 +112,20 @@ export const modelService = {
       if (typeof data.backgroundImage === 'string') {
         input.backgroundImage = data.backgroundImage
       } else {
-        input.backgroundImage = data.backgroundImage.name
+        // Upload image file and get the URL
+        const formData = new FormData()
+        formData.append('file', data.backgroundImage)
+        const uploadResponse = await fetch('/api/upload/image', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        })
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json()
+          input.backgroundImage = uploadResult.file.url
+        } else {
+          throw new Error('Image upload failed')
+        }
       }
     }
 
@@ -68,13 +133,61 @@ export const modelService = {
       if (typeof data.backgroundVideo === 'string') {
         input.backgroundVideo = data.backgroundVideo
       } else {
-        input.backgroundVideo = data.backgroundVideo.name
+        // Upload video file and get the URL
+        const formData = new FormData()
+        formData.append('file', data.backgroundVideo)
+        const uploadResponse = await fetch('/api/upload/video', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        })
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json()
+          input.backgroundVideo = uploadResult.file.url
+        } else {
+          throw new Error('Video upload failed')
+        }
       }
     }
 
+    if (data.modelFile) {
+      if (typeof data.modelFile === 'string') {
+        input.modelFile = data.modelFile
+      } else {
+        // Upload 3D model file and get the URL with metadata
+        const formData = new FormData()
+        formData.append('file', data.modelFile)
+        const uploadResponse = await fetch('/api/upload/model', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        })
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json()
+          const file = uploadResult.file
+          input.modelFile = file.url
+          input.modelFileName = file.originalName
+          input.modelFilePath = file.path
+          input.modelFileSize = file.size
+          input.modelFileType = file.filename.split('.').pop()
+          input.modelFileMimeType = file.mimetype
+        } else {
+          throw new Error('3D model upload failed')
+        }
+      }
+    }
+
+    // Handle 3D model metadata fields (if passed as strings)
+    if (data.modelFileName) input.modelFileName = data.modelFileName
+    if (data.modelFilePath) input.modelFilePath = data.modelFilePath
+    if (data.modelFileSize) input.modelFileSize = data.modelFileSize
+    if (data.modelFileType) input.modelFileType = data.modelFileType
+    if (data.modelFileMimeType) input.modelFileMimeType = data.modelFileMimeType
+
     // Use the appropriate request method based on whether we're uploading files
     const hasFiles = (data.backgroundImage && typeof data.backgroundImage !== 'string') ||
-                   (data.backgroundVideo && typeof data.backgroundVideo !== 'string')
+                   (data.backgroundVideo && typeof data.backgroundVideo !== 'string') ||
+                   (data.modelFile && typeof data.modelFile !== 'string')
 
     if (hasFiles) {
       const response = await uploadRequest(UPDATE_MODEL_MUTATION, { id, input })

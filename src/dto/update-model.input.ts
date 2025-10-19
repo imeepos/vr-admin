@@ -24,4 +24,33 @@ export class UpdateModelInput {
   @IsOptional()
   @IsString()
   backgroundVideo?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  modelFile?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  modelFileName?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  modelFilePath?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  modelFileSize?: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  modelFileType?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  modelFileMimeType?: string;
 }

@@ -86,19 +86,45 @@ export class FileUploadController {
     }
   }
 
+  @Post('model')
+  @UseInterceptors(FileInterceptor('file'))
+  async upload3DModel(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('请选择要上传的3D模型文件');
+    }
+
+    try {
+      const uploadedFile = await this.fileUploadService.upload3DModel(
+        file.buffer,
+        file.originalname,
+        file.mimetype,
+      );
+
+      return {
+        success: true,
+        file: uploadedFile,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
   @Post('model-with-files')
   @UseInterceptors(
     FileInterceptor('backgroundImage'),
     FileInterceptor('backgroundVideo'),
+    FileInterceptor('modelFile'),
   )
   async createModelWithFiles(
     @Body() createModelInput: CreateModelInput,
     @UploadedFile() backgroundImage?: Express.Multer.File,
     @UploadedFile() backgroundVideo?: Express.Multer.File,
+    @UploadedFile() modelFile?: Express.Multer.File,
   ) {
     try {
       let backgroundImageUrl: string | undefined;
       let backgroundVideoUrl: string | undefined;
+      let modelFileData: any = undefined;
 
       if (backgroundImage) {
         const uploadedImage = await this.fileUploadService.uploadImage(
@@ -118,10 +144,28 @@ export class FileUploadController {
         backgroundVideoUrl = uploadedVideo.url;
       }
 
+      if (modelFile) {
+        const uploadedModel = await this.fileUploadService.upload3DModel(
+          modelFile.buffer,
+          modelFile.originalname,
+          modelFile.mimetype,
+        );
+
+        modelFileData = {
+          modelFile: uploadedModel.url,
+          modelFileName: uploadedModel.originalName,
+          modelFilePath: uploadedModel.path,
+          modelFileSize: uploadedModel.size,
+          modelFileType: uploadedModel.filename.split('.').pop(),
+          modelFileMimeType: uploadedModel.mimetype,
+        };
+      }
+
       const modelData = {
         ...createModelInput,
         backgroundImage: backgroundImageUrl,
         backgroundVideo: backgroundVideoUrl,
+        ...modelFileData,
       };
 
       const model = await this.modelService.create(modelData);

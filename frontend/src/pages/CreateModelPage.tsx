@@ -27,6 +27,7 @@ export function CreateModelPage() {
 
   const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(null)
   const [backgroundVideoFile, setBackgroundVideoFile] = useState<File | null>(null)
+  const [modelFile, setModelFile] = useState<File | null>(null)
 
   useEffect(() => {
     if (isEditing && model) {
@@ -41,6 +42,7 @@ export function CreateModelPage() {
         ...data,
         backgroundImage: backgroundImageFile || undefined,
         backgroundVideo: backgroundVideoFile || undefined,
+        modelFile: modelFile || undefined,
       }
 
       if (isEditing && id) {
@@ -160,6 +162,33 @@ export function CreateModelPage() {
                 onChange={setBackgroundVideoFile}
                 preview={model?.backgroundVideo}
               />
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">3D模型文件</h3>
+              <p className="card-description">
+                上传3D模型文件。支持 GLB、GLTF 格式，最大 200MB。
+              </p>
+            </div>
+            <div className="card-content">
+              <FileUpload
+                accept={['model/gltf+json', 'model/gltf-binary']}
+                maxSize={200 * 1024 * 1024}
+                value={modelFile}
+                onChange={setModelFile}
+                preview={model?.modelFile}
+              />
+              {model?.modelFile && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-md">
+                  <div className="text-sm text-gray-600">
+                    <div><strong>文件名:</strong> {model.modelFileName}</div>
+                    <div><strong>文件大小:</strong> {(model.modelFileSize! / 1024 / 1024).toFixed(2)} MB</div>
+                    <div><strong>文件类型:</strong> {model.modelFileType?.toUpperCase()}</div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -76,6 +76,19 @@ export function FileUpload({
             className="w-full h-full object-cover rounded-lg"
           />
         )
+      } else if (preview.includes('model') || preview.endsWith('.glb') || preview.endsWith('.gltf')) {
+        // 3D模型文件预览 - 显示一个3D图标占位符
+        return (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg">
+            <div className="text-center">
+              <div className="text-4xl mb-2">🎯</div>
+              <div className="text-sm font-medium text-gray-700">3D模型文件</div>
+              <div className="text-xs text-gray-500 mt-1">
+                {preview.split('/').pop()?.split('.')[0]?.substring(0, 15) || 'Model'}...
+              </div>
+            </div>
+          </div>
+        )
       } else {
         return (
           <img
@@ -96,6 +109,19 @@ export function FileUpload({
             controls
             className="w-full h-full object-cover rounded-lg"
           />
+        )
+      } else if (value.type.includes('model') || value.name.endsWith('.glb') || value.name.endsWith('.gltf')) {
+        // 3D模型文件预览 - 显示一个3D图标占位符
+        return (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg">
+            <div className="text-center">
+              <div className="text-4xl mb-2">🎯</div>
+              <div className="text-sm font-medium text-gray-700">3D模型文件</div>
+              <div className="text-xs text-gray-500 mt-1">
+                {value.name.substring(0, 20)}...
+              </div>
+            </div>
+          </div>
         )
       } else {
         return (

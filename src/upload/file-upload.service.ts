@@ -49,6 +49,17 @@ export class FileUploadService {
     return allowedTypes.includes(mimetype);
   }
 
+  private isAllowed3DModelType(mimetype: string): boolean {
+    const allowedTypes = ['model/gltf+json', 'model/gltf-binary'];
+    return allowedTypes.includes(mimetype);
+  }
+
+  private isAllowed3DModelExtension(filename: string): boolean {
+    const extension = this.getFileExtension(filename).toLowerCase();
+    const allowedExtensions = ['glb', 'gltf'];
+    return allowedExtensions.includes(extension);
+  }
+
   private async saveFile(buffer: Buffer, filename: string): Promise<string> {
     const filePath = join(this.uploadDir, filename);
     await fs.writeFile(filePath, buffer);
@@ -95,6 +106,40 @@ export class FileUploadService {
       filename,
       originalName,
       mimetype,
+      size: buffer.length,
+      path,
+      url,
+    };
+  }
+
+  async upload3DModel(buffer: Buffer, originalName: string, mimetype: string): Promise<UploadedFile> {
+    // 检查文件扩展名，因为某些浏览器可能无法正确识别3D模型的MIME类型
+    if (!this.isAllowed3DModelType(mimetype) && !this.isAllowed3DModelExtension(originalName)) {
+      throw new Error('不支持的3D模型格式。仅支持 GLB、GLTF 格式。');
+    }
+
+    if (buffer.length > 200 * 1024 * 1024) { // 200MB
+      throw new Error('3D模型文件大小不能超过 200MB。');
+    }
+
+    const filename = this.generateUniqueFilename(originalName);
+    const path = await this.saveFile(buffer, filename);
+    const url = `${this.baseUrl}/uploads/${filename}`;
+
+    // 根据文件扩展名确定正确的MIME类型
+    const extension = this.getFileExtension(originalName).toLowerCase();
+    let correctMimeType = mimetype;
+
+    if (extension === 'glb') {
+      correctMimeType = 'model/gltf-binary';
+    } else if (extension === 'gltf') {
+      correctMimeType = 'model/gltf+json';
+    }
+
+    return {
+      filename,
+      originalName,
+      mimetype: correctMimeType,
       size: buffer.length,
       path,
       url,
