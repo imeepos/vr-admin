@@ -19,6 +19,7 @@
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@tanstack/react-query": "^5.65.0",
+    "@types/extract-files": "^13.0.2",
     "better-auth": "^1.1.16",
     "clsx": "^2.1.1",
     "extract-files": "^13.0.0",

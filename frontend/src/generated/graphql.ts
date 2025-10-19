@@ -32,6 +32,12 @@ export interface CreateModelInput {
   description?: string;
   backgroundImage?: string | File;
   backgroundVideo?: string | File;
+  modelFile?: string | File;
+  modelFileName?: string;
+  modelFilePath?: string;
+  modelFileSize?: number;
+  modelFileType?: string;
+  modelFileMimeType?: string;
 }
 
 export interface UpdateModelInput {
@@ -39,6 +45,12 @@ export interface UpdateModelInput {
   description?: string;
   backgroundImage?: string | File;
   backgroundVideo?: string | File;
+  modelFile?: string | File;
+  modelFileName?: string;
+  modelFilePath?: string;
+  modelFileSize?: number;
+  modelFileType?: string;
+  modelFileMimeType?: string;
 }
 
 export interface LoginInput {

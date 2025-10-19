@@ -1,5 +1,4 @@
 import { GraphQLClient } from 'graphql-request';
-import { createUploadMiddleware } from '@apollo/server/core/uploadMiddleware';
 import { extractFiles } from 'extract-files';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/';
@@ -72,7 +71,7 @@ export const uploadRequest = async (document: string, variables?: any) => {
       const map: Record<string, string[]> = {};
       let fileIndex = 0;
 
-      files.forEach((paths, file) => {
+      files.forEach((paths: string[], file: File) => {
         const fileKey = `variables${paths.join('.')}`;
         map[fileIndex.toString()] = [fileKey];
         formData.append(fileIndex.toString(), file);

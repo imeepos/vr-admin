@@ -19,7 +19,7 @@ RUN pnpm install --ignore-scripts
 COPY frontend/package.json frontend/pnpm-lock.yaml ./frontend/
 
 # 安装前端依赖 (跳过脚本)
-RUN cd frontend && pnpm install --frozen-lockfile --ignore-scripts
+RUN cd frontend && pnpm install --ignore-scripts
 
 # 复制源代码
 COPY . .
