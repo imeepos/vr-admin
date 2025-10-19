@@ -61,13 +61,21 @@ export class CreateInitialTables1698765432100 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      CREATE TRIGGER IF NOT EXISTS "user_updated_at"
+      DROP TRIGGER IF EXISTS "user_updated_at" ON "user"
+    `);
+
+    await queryRunner.query(`
+      CREATE TRIGGER "user_updated_at"
       BEFORE UPDATE ON "user"
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
     `);
 
     await queryRunner.query(`
-      CREATE TRIGGER IF NOT EXISTS "model_updated_at"
+      DROP TRIGGER IF EXISTS "model_updated_at" ON "model"
+    `);
+
+    await queryRunner.query(`
+      CREATE TRIGGER "model_updated_at"
       BEFORE UPDATE ON "model"
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
     `);
