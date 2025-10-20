@@ -129,6 +129,7 @@ vr-admin/
 
 ### REST 接口
 
+- `GET /api/models/uuid/:uuid`: 根据模型 `uuid` 查询详情（需额外携带 `sign` 与 `timestamp` 查询参数）
 - `POST /upload/image`: 上传图片
 - `POST /upload/video`: 上传视频
 
