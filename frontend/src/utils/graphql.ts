@@ -86,8 +86,7 @@ export const uploadRequest = async (document: string, variables?: any) => {
       const response = await fetch(getGraphQLUrl(), {
         method: 'POST',
         body: formData,
-        headers,
-        credentials: 'include'
+        headers
       });
 
       if (!response.ok) {

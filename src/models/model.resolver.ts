@@ -3,8 +3,11 @@ import { ModelService } from './model.service';
 import { Model } from '../entities/model.entity';
 import { CreateModelInput } from '../dto/create-model.input';
 import { UpdateModelInput } from '../dto/update-model.input';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Resolver(() => Model)
+@UseGuards(AuthGuard)
 export class ModelResolver {
   constructor(private readonly modelService: ModelService) {}
 

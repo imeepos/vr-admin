@@ -119,7 +119,7 @@ export function CreateModelPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[700px]">
           {/* Left Column - Form */}
           <div className="order-2 lg:order-1">
             <form id="model-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">

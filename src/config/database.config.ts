@@ -4,8 +4,6 @@ import { Model } from '../entities/model.entity'
 import { User } from '../entities/user.entity'
 
 export default registerAs('database', (): TypeOrmModuleOptions => {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-
   return {
     type: 'postgres',
     host: process.env.DB_HOST || 'localhost',
@@ -17,7 +15,7 @@ export default registerAs('database', (): TypeOrmModuleOptions => {
       User, Model
     ],
     synchronize: false, // 使用 migrations 替代自动同步
-    migrationsRun: isDevelopment, // 开发环境自动运行 migrations
+    migrationsRun: true, // 开发环境自动运行 migrations
     migrations: ['dist/migrations/*.js'],
     logging: true,
     ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,

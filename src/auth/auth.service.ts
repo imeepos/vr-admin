@@ -1,4 +1,7 @@
-import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
@@ -19,7 +22,19 @@ export class AuthService {
         { username, isActive: true },
         { email: username, isActive: true },
       ],
-      select: ['id', 'username', 'email', 'name', 'password', 'salt', 'avatar', 'sessions', 'isActive', 'createdAt', 'updatedAt'],
+      select: [
+        'id',
+        'username',
+        'email',
+        'name',
+        'password',
+        'salt',
+        'avatar',
+        'sessions',
+        'isActive',
+        'createdAt',
+        'updatedAt',
+      ],
     });
 
     if (!user) {
@@ -58,9 +73,22 @@ export class AuthService {
     await this.userRepository.update(userId, { sessions: [] });
   }
 
+  async cleanupAllSessions(): Promise<void> {
+    // 清理所有用户的sessions，只保留最近的3个
+    const users = await this.userRepository.find();
+
+    for (const user of users) {
+      if (user.sessions && user.sessions.length > 3) {
+        const recentSessions = user.sessions.slice(-3);
+        await this.userRepository.update(user.id, { sessions: recentSessions });
+      }
+    }
+  }
+
   async getCurrentUser(userId: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { id: userId, isActive: true },
+      select: { id: true, username: true, email: true, name: true, avatar: true },
     });
   }
 
@@ -72,10 +100,7 @@ export class AuthService {
   }): Promise<User> {
     // 检查用户名是否已存在
     const existingUser = await this.userRepository.findOne({
-      where: [
-        { username: userData.username },
-        { email: userData.email },
-      ],
+      where: [{ username: userData.username }, { email: userData.email }],
     });
 
     if (existingUser) {
@@ -101,13 +126,16 @@ export class AuthService {
       sub: user.id,
       username: user.username,
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 小时
+      exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 小时
     };
 
     return Buffer.from(JSON.stringify(payload)).toString('base64');
   }
 
-  private async updateUserSession(userId: string, token: string): Promise<void> {
+  private async updateUserSession(
+    userId: string,
+    token: string,
+  ): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) return;
 
@@ -118,9 +146,9 @@ export class AuthService {
       lastActive: new Date(),
     });
 
-    // 限制会话数量
-    if (sessions.length > 10) {
-      sessions.splice(0, sessions.length - 10);
+    // 限制会话数量，减少到3个以减小数据大小
+    if (sessions.length > 3) {
+      sessions.splice(0, sessions.length - 3);
     }
 
     await this.userRepository.update(userId, { sessions });
@@ -128,7 +156,9 @@ export class AuthService {
 
   async refreshToken(refreshToken: string): Promise<{ token: string } | null> {
     try {
-      const payload = JSON.parse(Buffer.from(refreshToken, 'base64').toString());
+      const payload = JSON.parse(
+        Buffer.from(refreshToken, 'base64').toString(),
+      );
 
       if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
         throw new UnauthorizedException('Token 已过期');
@@ -160,5 +190,12 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  async getAdminUser(username: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { username, isActive: true },
+      select: { id: true, username: true, email: true, name: true, avatar: true },
+    });
   }
 }

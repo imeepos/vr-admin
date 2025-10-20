@@ -383,7 +383,7 @@ export function ModelFormPreview({
   }
 
   return (
-    <div className="w-full h-full min-h-[600px] bg-gray-900 rounded-lg overflow-hidden relative">
+    <div className="w-full h-full min-h-[700px] bg-gray-900 rounded-lg overflow-hidden relative">
       {renderDesktopContent()}
     </div>
   );

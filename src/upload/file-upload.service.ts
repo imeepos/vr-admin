@@ -1,38 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { promises as fs } from 'fs';
-import { join } from 'path';
+import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
-
-export interface UploadedFile {
-  filename: string;
-  originalName: string;
-  mimetype: string;
-  size: number;
-  path: string;
-  url: string;
-}
+import { IStorageAdapter, UploadedFile } from './storage/storage.interface';
+import { StorageFactory } from './storage/storage.factory';
 
 @Injectable()
 export class FileUploadService {
-  private readonly uploadDir = join(__dirname, '..', '..', 'public', 'uploads');
-  private readonly baseUrl = 'http://localhost:3002';
+  private readonly storageAdapter: IStorageAdapter;
   private readonly logger = new Logger(FileUploadService.name);
 
-  constructor() {
-    void this.ensureUploadDir();
-    this.logger.log('Upload directory resolved to: ' + this.uploadDir);
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly storageFactory: StorageFactory
+  ) {
+    this.storageAdapter = this.storageFactory.createStorageAdapter();
+    this.logger.log(`File upload service initialized with ${this.configService.get('app.storageType', 'LOCAL')} storage`);
   }
 
-  private async ensureUploadDir() {
-    this.logger.log('Ensuring upload directory: ' + this.uploadDir);
-    try {
-      await fs.access(this.uploadDir);
-      this.logger.log('Upload directory already exists: ' + this.uploadDir);
-    } catch {
-      await fs.mkdir(this.uploadDir, { recursive: true });
-      this.logger.log('Created upload directory: ' + this.uploadDir);
-    }
-  }
 
   private getFileExtension(filename: string): string {
     return filename.split('.').pop() || '';
@@ -65,13 +49,6 @@ export class FileUploadService {
     return allowedExtensions.includes(extension);
   }
 
-  private async saveFile(buffer: Buffer, filename: string): Promise<string> {
-    await this.ensureUploadDir();
-    const filePath = join(this.uploadDir, filename);
-    this.logger.log('Saving file to: ' + filePath + ' (size: ' + buffer.length + ' bytes)');
-    await fs.writeFile(filePath, buffer);
-    return filePath;
-  }
 
   async uploadImage(buffer: Buffer, originalName: string, mimetype: string): Promise<UploadedFile> {
     if (!this.isAllowedImageType(mimetype)) {
@@ -83,17 +60,7 @@ export class FileUploadService {
     }
 
     const filename = this.generateUniqueFilename(originalName);
-    const path = await this.saveFile(buffer, filename);
-    const url = `${this.baseUrl}/uploads/${filename}`;
-
-    return {
-      filename,
-      originalName,
-      mimetype,
-      size: buffer.length,
-      path,
-      url,
-    };
+    return await this.storageAdapter.uploadFile(buffer, filename, mimetype);
   }
 
   async uploadVideo(buffer: Buffer, originalName: string, mimetype: string): Promise<UploadedFile> {
@@ -106,17 +73,7 @@ export class FileUploadService {
     }
 
     const filename = this.generateUniqueFilename(originalName);
-    const path = await this.saveFile(buffer, filename);
-    const url = `${this.baseUrl}/uploads/${filename}`;
-
-    return {
-      filename,
-      originalName,
-      mimetype,
-      size: buffer.length,
-      path,
-      url,
-    };
+    return await this.storageAdapter.uploadFile(buffer, filename, mimetype);
   }
 
   async upload3DModel(buffer: Buffer, originalName: string, mimetype: string): Promise<UploadedFile> {
@@ -129,10 +86,6 @@ export class FileUploadService {
       throw new Error('3D模型文件大小不能超过 200MB。');
     }
 
-    const filename = this.generateUniqueFilename(originalName);
-    const path = await this.saveFile(buffer, filename);
-    const url = `${this.baseUrl}/uploads/${filename}`;
-
     // 根据文件扩展名确定正确的MIME类型
     const extension = this.getFileExtension(originalName).toLowerCase();
     let correctMimeType = mimetype;
@@ -143,23 +96,11 @@ export class FileUploadService {
       correctMimeType = 'model/gltf+json';
     }
 
-    return {
-      filename,
-      originalName,
-      mimetype: correctMimeType,
-      size: buffer.length,
-      path,
-      url,
-    };
+    const filename = this.generateUniqueFilename(originalName);
+    return await this.storageAdapter.uploadFile(buffer, filename, correctMimeType);
   }
 
   async deleteFile(filename: string): Promise<boolean> {
-    try {
-      const filePath = join(this.uploadDir, filename);
-      await fs.unlink(filePath);
-      return true;
-    } catch {
-      return false;
-    }
+    return await this.storageAdapter.deleteFile(filename);
   }
 }

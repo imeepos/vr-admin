@@ -87,7 +87,7 @@ input UpdateModelInput {
 type Query {
   users: [User!]!
   user(id: ID!): User
-  models: [Model!]!
+  models(search: String): [Model!]!
   model(id: ID!): Model
   modelByUuid(uuid: String!): Model
 }

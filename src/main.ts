@@ -7,9 +7,25 @@ import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.int
 import { json, urlencoded } from 'express';
 import { join } from 'path';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
+import MaxHeaderExpressAdapter from './adapters/max-header-express.adapter';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const parsedMaxHeaderSize = parseInt(
+    process.env.MAX_HTTP_HEADER_SIZE ?? '',
+    10,
+  );
+  const expressAdapter = new MaxHeaderExpressAdapter(
+    Number.isFinite(parsedMaxHeaderSize) && parsedMaxHeaderSize > 0
+      ? parsedMaxHeaderSize
+      : undefined,
+  );
+  const app = await NestFactory.create<NestExpressApplication>(
+    AppModule,
+    expressAdapter,
+    {
+      rawBody: true,
+    },
+  );
   const configService = app.get(ConfigService);
   const uploadsPath = join(__dirname, '..', 'public', 'uploads');
 

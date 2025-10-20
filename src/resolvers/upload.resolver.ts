@@ -1,6 +1,8 @@
 import { Resolver, Mutation, Args, ObjectType, Field } from '@nestjs/graphql';
-import { FileUploadService, UploadedFile as UploadedFileType } from '../upload/file-upload.service';
-import { Logger } from '@nestjs/common';
+import { UseGuards, Logger } from '@nestjs/common';
+import { FileUploadService } from '../upload/file-upload.service';
+import { UploadedFile as UploadedFileType } from '../upload/storage/storage.interface';
+import { AuthGuard } from '../auth/auth.guard';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
 
 interface GraphQLFileUpload {
@@ -49,6 +51,7 @@ export class UploadResolver {
   constructor(private readonly fileUploadService: FileUploadService) {}
 
   @Mutation(() => UploadResult, { name: 'uploadImage' })
+  @UseGuards(AuthGuard)
   async uploadImage(@Args('file', { type: () => GraphQLUpload }) file: GraphQLUploadArg) {
     return this.handleUpload(file, (buffer, filename, mimetype) =>
       this.fileUploadService.uploadImage(buffer, filename, mimetype),
@@ -56,6 +59,7 @@ export class UploadResolver {
   }
 
   @Mutation(() => UploadResult, { name: 'uploadVideo' })
+  @UseGuards(AuthGuard)
   async uploadVideo(@Args('file', { type: () => GraphQLUpload }) file: GraphQLUploadArg) {
     return this.handleUpload(file, (buffer, filename, mimetype) =>
       this.fileUploadService.uploadVideo(buffer, filename, mimetype),
@@ -63,6 +67,7 @@ export class UploadResolver {
   }
 
   @Mutation(() => UploadResult, { name: 'uploadModel' })
+  @UseGuards(AuthGuard)
   async uploadModel(@Args('file', { type: () => GraphQLUpload }) file: GraphQLUploadArg) {
     return this.handleUpload(file, (buffer, filename, mimetype) =>
       this.fileUploadService.upload3DModel(buffer, filename, mimetype),

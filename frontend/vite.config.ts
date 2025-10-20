@@ -21,14 +21,24 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 3000,
+      host: '0.0.0.0',
+      headers: {
+        'Access-Control-Max-Age': '86400'
+      },
       proxy: {
         '/api': {
           target: 'http://localhost:3002/api',
           changeOrigin: true,
+          headers: {
+            'Connection': 'keep-alive'
+          }
         },
         '/graphql': {
           target: 'http://localhost:3002/graphql',
           changeOrigin: true,
+          headers: {
+            'Connection': 'keep-alive'
+          }
         },
       },
     },

@@ -45,8 +45,8 @@ export function MobilePreviewFrame({ children, className = '' }: MobilePreviewFr
               className="relative w-full bg-red-500 overflow-hidden"
               style={{
                 aspectRatio: '9 / 19.5',
-                minHeight: '600px',
-                maxHeight: '800px',
+                minHeight: '700px',
+                maxHeight: '900px',
                 width: '320px'
               }}
             >
