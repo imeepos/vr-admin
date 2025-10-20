@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { GqlExecutionContext } from '@nestjs/graphql';
 import { SignatureService } from './signature.service';
 
 @Injectable()
@@ -16,24 +15,20 @@ export class SignatureInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     return next.handle().pipe(
       map((data) => {
-        const signature = this.signatureService.signPayload(data);
-        if (signature) {
-          const type = context.getType<'http' | 'graphql' | string>();
-          if (type === 'http') {
+        const type = context.getType<'http' | 'graphql' | string>();
+
+        // 仅为 HTTP REST 端点添加签名，GraphQL 完全不涉及签名机制
+        if (type === 'http') {
+          const signature = this.signatureService.signPayload(data);
+          if (signature) {
             const response = context.switchToHttp().getResponse();
-            if (response?.setHeader) {
-              response.setHeader('sign', signature.sign);
-              response.setHeader('sign-timestamp', signature.timestamp.toString());
-            }
-          } else if (type === 'graphql') {
-            const gqlContext = GqlExecutionContext.create(context);
-            const response = gqlContext.getContext().res;
             if (response?.setHeader) {
               response.setHeader('sign', signature.sign);
               response.setHeader('sign-timestamp', signature.timestamp.toString());
             }
           }
         }
+
         return data;
       }),
     );
