@@ -42,6 +42,22 @@ async function bootstrap() {
   // 静态资源映射，将上传文件暴露为 /uploads/*
   app.useStaticAssets(uploadsPath, {
     prefix: '/uploads/',
+    setHeaders: (res, path) => {
+      // 为静态文件添加 CORS 头部
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+      // 为 3D 模型文件设置正确的 MIME 类型
+      if (path.endsWith('.glb')) {
+        res.setHeader('Content-Type', 'model/gltf-binary');
+      } else if (path.endsWith('.gltf')) {
+        res.setHeader('Content-Type', 'model/gltf+json');
+      }
+
+      // 设置缓存控制
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+    }
   });
 
   // 添加 GraphQL 文件上传中间件处理 multipart/form-data 请求

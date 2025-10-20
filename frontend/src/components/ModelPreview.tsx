@@ -1,15 +1,29 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 interface ModelPreviewProps {
   modelUrl?: string;
   className?: string;
+  onModelLoad?: (modelUrl: string) => void;
+  transparent?: boolean;
+  cameraControls?: boolean;
+  autoRotate?: boolean;
 }
 
 declare global {
   namespace JSX {
     interface IntrinsicElements {
       'needle-engine': React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & { src?: string },
+        React.HTMLAttributes<HTMLElement> & {
+          src?: string;
+          'background-color'?: string;
+          transparent?: boolean;
+          contactshadows?: boolean;
+          'tone-mapping'?: string;
+          'tone-mapping-exposure'?: number;
+          'camera-controls'?: boolean;
+          'auto-rotate'?: boolean;
+          'hide-loading-overlay'?: boolean;
+        },
         HTMLElement
       >;
     }
@@ -18,8 +32,21 @@ declare global {
 
 const isServer = () => typeof window === 'undefined';
 
-export function ModelPreview({ modelUrl, className = '' }: ModelPreviewProps) {
+export function ModelPreview({
+  modelUrl,
+  className = '',
+  onModelLoad,
+  transparent = true,
+  cameraControls = true,
+  autoRotate = true
+}: ModelPreviewProps) {
   const needleEngineRef = useRef<HTMLElement | null>(null);
+
+  const handleModelLoad = useCallback(() => {
+    if (modelUrl && onModelLoad) {
+      onModelLoad(modelUrl);
+    }
+  }, [modelUrl, onModelLoad]);
 
   useEffect(() => {
     if (isServer() || !modelUrl) return;
@@ -38,6 +65,7 @@ export function ModelPreview({ modelUrl, className = '' }: ModelPreviewProps) {
 
       needle.onInitialized(() => {
         console.log('[ModelPreview] 模型加载完成:', modelUrl);
+        handleModelLoad();
       });
     }).catch((error) => {
       console.error('[ModelPreview] 引擎初始化失败:', error);
@@ -46,7 +74,7 @@ export function ModelPreview({ modelUrl, className = '' }: ModelPreviewProps) {
     return () => {
       mounted = false;
     };
-  }, [modelUrl]);
+  }, [modelUrl, handleModelLoad]);
 
   if (isServer() || !modelUrl) {
     return (
@@ -76,10 +104,18 @@ export function ModelPreview({ modelUrl, className = '' }: ModelPreviewProps) {
   }
 
   return (
-    <div className={`relative bg-gray-900 rounded-lg overflow-hidden ${className}`}>
+    <div className={`relative ${transparent ? 'bg-transparent' : 'bg-gray-900'} rounded-lg overflow-hidden ${className}`}>
       <needle-engine
         ref={needleEngineRef as any}
         src={modelUrl}
+        background-color={transparent ? 'transparent' : '#1f2937'}
+        transparent={transparent}
+        contactshadows={true}
+        tone-mapping="agx"
+        tone-mapping-exposure={1}
+        camera-controls={cameraControls}
+        auto-rotate={autoRotate}
+        hide-loading-overlay={true}
         style={{ width: '100%', height: '100%' }}
       />
     </div>

@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useModels, useModel } from '@/hooks/useModels';
 import { FileUpload } from '@/components/FileUpload';
-import { ModelPreview } from '@/components/ModelPreview';
+import { ModelFormPreview } from '@/components/ModelFormPreview';
+import { EventSimulator } from '@/components/EventSimulator';
 import type { CreateModelInput, UpdateModelInput } from '@/generated/graphql';
 
 export function CreateModelPage() {
@@ -18,6 +19,7 @@ export function CreateModelPage() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<CreateModelInput>({
     defaultValues: {
@@ -26,6 +28,10 @@ export function CreateModelPage() {
     },
   });
 
+  // Watch form values for real-time preview
+  const watchedTitle = watch('title');
+  const watchedDescription = watch('description');
+
   const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(
     null,
   );
@@ -33,26 +39,14 @@ export function CreateModelPage() {
     null,
   );
   const [modelFile, setModelFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>('');
-  const [showPreview, setShowPreview] = useState(false);
+  const [isFullscreenMode, setIsFullscreenMode] = useState<boolean>(false);
 
   useEffect(() => {
     if (isEditing && model) {
       setValue('title', model.title);
       setValue('description', model.description || '');
-      if (model.modelFile) {
-        setPreviewUrl(model.modelFile);
-      }
     }
   }, [isEditing, model, setValue]);
-
-  useEffect(() => {
-    if (modelFile) {
-      const objectUrl = URL.createObjectURL(modelFile);
-      setPreviewUrl(objectUrl);
-      return () => URL.revokeObjectURL(objectUrl);
-    }
-  }, [modelFile]);
 
   const onSubmit = async (data: CreateModelInput) => {
     try {
@@ -78,16 +72,46 @@ export function CreateModelPage() {
   const isLoading = isLoadingModel || isCreating || isUpdating;
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8">
+    <div className="px-4 sm:px-6 lg:px-8 py-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          {isEditing ? '编辑模型' : '创建新模型'}
-        </h1>
-        <p className="mt-2 text-sm text-gray-700">
-          {isEditing
-            ? '修改模型的配置和媒体文件。'
-            : '创建一个新的 VR 模型并配置相关参数。'}
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              {isEditing ? '编辑模型' : '创建新模型'}
+            </h1>
+            <p className="mt-2 text-sm text-gray-700">
+              {isEditing
+                ? '修改模型的配置和媒体文件。'
+                : '创建一个新的 VR 模型并配置相关参数。'}
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-3 flex-shrink-0">
+            <EventSimulator currentFullscreenMode={isFullscreenMode} />
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/models')}
+              className="btn btn-secondary px-4 py-2"
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              form="model-form"
+              disabled={isLoading}
+              className="btn btn-primary disabled:opacity-50 px-4 py-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {isEditing ? '更新中…' : '创建中…'}
+                </>
+              ) : (
+                <>{isEditing ? '更新模型' : '创建模型'}</>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
 
       {isLoadingModel ? (
@@ -95,7 +119,10 @@ export function CreateModelPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[600px]">
+          {/* Left Column - Form */}
+          <div className="order-2 lg:order-1">
+            <form id="model-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">基本信息</h3>
@@ -226,62 +253,32 @@ export function CreateModelPage() {
                   </div>
                 </div>
               )}
-
-              {previewUrl && (
-                <div className="mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="btn btn-secondary w-full"
-                  >
-                    {showPreview ? '隐藏预览' : '显示预览'}
-                  </button>
-                </div>
-              )}
             </div>
           </div>
 
-          {showPreview && previewUrl && (
-            <div className="card">
-              <div className="card-header">
-                <h3 className="card-title">3D 模型预览</h3>
-                <p className="card-description">
-                  实时预览您的 3D 模型效果。
-                </p>
-              </div>
+            </form>
+          </div>
+
+          {/* Right Column - Preview */}
+          <div className="order-1 lg:order-2 lg:sticky lg:top-8 lg:h-fit">
+            <div className="card h-full">
               <div className="card-content">
-                <ModelPreview
-                  modelUrl={previewUrl}
-                  className="w-full h-[600px]"
+                <ModelFormPreview
+                  title={watchedTitle}
+                  description={watchedDescription}
+                  backgroundImageFile={backgroundImageFile}
+                  backgroundVideoFile={backgroundVideoFile}
+                  modelFile={modelFile}
+                  backgroundImagePreview={model?.backgroundImage}
+                  backgroundVideoPreview={model?.backgroundVideo}
+                  modelFilePreview={model?.modelFile}
+                  isMobilePreview={true}
+                  onFullscreenModeChange={setIsFullscreenMode}
                 />
               </div>
             </div>
-          )}
-
-          <div className="flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={() => navigate('/dashboard/models')}
-              className="btn btn-secondary p-2"
-            >
-              取消
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn btn-primary disabled:opacity-50 p-2"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isEditing ? '更新中…' : '创建中…'}
-                </>
-              ) : (
-                <>{isEditing ? '更新模型' : '创建模型'}</>
-              )}
-            </button>
           </div>
-        </form>
+        </div>
       )}
     </div>
   );

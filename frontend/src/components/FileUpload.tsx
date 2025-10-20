@@ -1,23 +1,24 @@
-import { useCallback, useState } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { useCallback, useEffect, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ModelPreview } from './ModelPreview';
 
 interface FileUploadProps {
-  accept?: string[]
-  maxSize?: number
-  maxFiles?: number
-  value?: File | null
-  onChange?: (file: File | null) => void
-  preview?: string
-  className?: string
+  accept?: string[];
+  maxSize?: number;
+  maxFiles?: number;
+  value?: File | null;
+  onChange?: (file: File | null) => void;
+  preview?: string;
+  className?: string;
 }
 
-const VIDEO_REGEX = /\.(mp4|webm|ogg)(?:[?#].*)?$/i
-const MODEL_REGEX = /\.(glb|gltf)(?:[?#].*)?$/i
+const VIDEO_REGEX = /\.(mp4|webm|ogg)(?:[?#].*)?$/i;
+const MODEL_REGEX = /\.(glb|gltf)(?:[?#].*)?$/i;
 
-const isVideoSource = (source: string) => VIDEO_REGEX.test(source)
+const isVideoSource = (source: string) => VIDEO_REGEX.test(source);
 
-const isModelSource = (source: string) => MODEL_REGEX.test(source)
+const isModelSource = (source: string) => MODEL_REGEX.test(source);
 
 export function FileUpload({
   accept = ['image/*'],
@@ -28,50 +29,66 @@ export function FileUpload({
   preview,
   className = '',
 }: FileUploadProps) {
-  const [error, setError] = useState<string>('')
-  const [dragActive, setDragActive] = useState(false)
+  const [error, setError] = useState<string>('');
+  const [dragActive, setDragActive] = useState(false);
+  const [objectUrl, setObjectUrl] = useState<string>('');
+
+  useEffect(() => {
+    if (value) {
+      const url = URL.createObjectURL(value);
+      setObjectUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setObjectUrl('');
+    }
+  }, [value]);
 
   const onDrop = useCallback(
     (acceptedFiles: File[], rejectedFiles: any[]) => {
-      setError('')
+      setError('');
 
       if (rejectedFiles.length > 0) {
-        const rejection = rejectedFiles[0]
+        const rejection = rejectedFiles[0];
         if (rejection.errors.some((e: any) => e.code === 'file-too-large')) {
-          setError('文件大小超过限制')
-        } else if (rejection.errors.some((e: any) => e.code === 'file-invalid-type')) {
-          setError('文件类型不支持')
+          setError('文件大小超过限制');
+        } else if (
+          rejection.errors.some((e: any) => e.code === 'file-invalid-type')
+        ) {
+          setError('文件类型不支持');
         } else {
-          setError('文件上传失败')
+          setError('文件上传失败');
         }
-        return
+        return;
       }
 
       if (acceptedFiles.length > 0) {
-        const file = acceptedFiles[0]
-        onChange?.(file)
+        const file = acceptedFiles[0];
+        onChange?.(file);
       }
     },
-    [onChange]
-  )
+    [onChange],
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: accept.reduce((acc, type) => {
-      acc[type] = []
-      return acc
-    }, {} as Record<string, string[]>),
+    accept: accept.reduce(
+      (acc, type) => {
+        acc[type] = [];
+        return acc;
+      },
+      {} as Record<string, string[]>,
+    ),
     maxSize,
     maxFiles,
     multiple: maxFiles > 1,
     onDragEnter: () => setDragActive(true),
     onDragLeave: () => setDragActive(false),
-  })
+  });
 
   const removeFile = () => {
-    onChange?.(null)
-    setError('')
-  }
+    onChange?.(null);
+    setError('');
+  };
 
   const renderPreview = () => {
     if (preview) {
@@ -82,21 +99,15 @@ export function FileUpload({
             controls
             className="w-full h-full object-cover rounded-lg"
           />
-        )
+        );
       }
 
       if (isModelSource(preview)) {
         return (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg">
-            <div className="text-center">
-              <div className="text-4xl mb-2">🎯</div>
-              <div className="text-sm font-medium text-gray-700">3D模型文件</div>
-              <div className="text-xs text-gray-500 mt-1">
-                {preview.split('/').pop()?.split('.')[0]?.substring(0, 15) || 'Model'}...
-              </div>
-            </div>
+            <ModelPreview modelUrl={preview} className="w-full h-[600px]" />
           </div>
-        )
+        );
       }
 
       return (
@@ -105,48 +116,45 @@ export function FileUpload({
           alt="Preview"
           className="w-full h-full object-cover rounded-lg"
         />
-      )
+      );
     }
 
-    if (value) {
-      const url = URL.createObjectURL(value)
+    if (value && objectUrl) {
       if (value.type.startsWith('video/')) {
         return (
           <video
-            src={url}
+            src={objectUrl}
             controls
             className="w-full h-full object-cover rounded-lg"
           />
-        )
+        );
       }
 
-      if (value.type.includes('model') || value.name.endsWith('.glb') || value.name.endsWith('.gltf')) {
+      if (
+        value.type.includes('model') ||
+        value.name.endsWith('.glb') ||
+        value.name.endsWith('.gltf')
+      ) {
         return (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg">
-            <div className="text-center">
-              <div className="text-4xl mb-2">🎯</div>
-              <div className="text-sm font-medium text-gray-700">3D模型文件</div>
-              <div className="text-xs text-gray-500 mt-1">
-                {value.name.substring(0, 20)}...
-              </div>
-            </div>
+            <ModelPreview modelUrl={objectUrl} className="w-full h-[600px]" />
           </div>
-        )
+        );
       }
 
       return (
         <img
-          src={url}
+          src={objectUrl}
           alt="Preview"
           className="w-full h-full object-cover rounded-lg"
         />
-      )
+      );
     }
 
-    return null
-  }
+    return null;
+  };
 
-  const hasFile = value || preview
+  const hasFile = value || preview;
 
   return (
     <div className={`w-full ${className}`}>
@@ -173,20 +181,25 @@ export function FileUpload({
             dragActive
               ? 'border-primary-500 bg-primary-50'
               : isDragActive
-              ? 'border-gray-400 bg-gray-50'
-              : 'border-gray-300 hover:border-gray-400'
+                ? 'border-gray-400 bg-gray-50'
+                : 'border-gray-300 hover:border-gray-400'
           }`}
         >
           <input {...getInputProps()} />
           <CloudArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
           <div className="mt-4">
-            <p className="text-lg font-medium text-gray-900">点击或拖拽文件到此处上传</p>
-            <p className="text-sm text-gray-500 mt-1">支持 {accept.join(', ')} 格式，最大 {Math.round(maxSize / 1024 / 1024)}MB</p>
+            <p className="text-lg font-medium text-gray-900">
+              点击或拖拽文件到此处上传
+            </p>
+            <p className="text-sm text-gray-500 mt-1">
+              支持 {accept.join(', ')} 格式，最大{' '}
+              {Math.round(maxSize / 1024 / 1024)}MB
+            </p>
           </div>
         </div>
       )}
 
       {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
     </div>
-  )
+  );
 }
