@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { useModels, useModel } from '@/hooks/useModels'
-import { FileUpload } from '@/components/FileUpload'
-import type { CreateModelInput, UpdateModelInput } from '@/generated/graphql'
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { useModels, useModel } from '@/hooks/useModels';
+import { FileUpload } from '@/components/FileUpload';
+import type { CreateModelInput, UpdateModelInput } from '@/generated/graphql';
 
 export function CreateModelPage() {
-  const navigate = useNavigate()
-  const { id } = useParams()
-  const isEditing = !!id
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditing = !!id;
 
-  const { createModel, updateModel, isCreating, isUpdating } = useModels()
-  const { model, isLoading: isLoadingModel } = useModel(id || '')
+  const { createModel, updateModel, isCreating, isUpdating } = useModels();
+  const { model, isLoading: isLoadingModel } = useModel(id || '');
 
   const {
     register,
@@ -23,18 +23,22 @@ export function CreateModelPage() {
       title: '',
       description: '',
     },
-  })
+  });
 
-  const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(null)
-  const [backgroundVideoFile, setBackgroundVideoFile] = useState<File | null>(null)
-  const [modelFile, setModelFile] = useState<File | null>(null)
+  const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(
+    null,
+  );
+  const [backgroundVideoFile, setBackgroundVideoFile] = useState<File | null>(
+    null,
+  );
+  const [modelFile, setModelFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (isEditing && model) {
-      setValue('title', model.title)
-      setValue('description', model.description || '')
+      setValue('title', model.title);
+      setValue('description', model.description || '');
     }
-  }, [isEditing, model, setValue])
+  }, [isEditing, model, setValue]);
 
   const onSubmit = async (data: CreateModelInput) => {
     try {
@@ -43,21 +47,21 @@ export function CreateModelPage() {
         backgroundImage: backgroundImageFile || undefined,
         backgroundVideo: backgroundVideoFile || undefined,
         modelFile: modelFile || undefined,
-      }
+      };
 
       if (isEditing && id) {
-        await updateModel(id, submitData as UpdateModelInput)
+        await updateModel(id, submitData as UpdateModelInput);
       } else {
-        await createModel(submitData)
+        await createModel(submitData);
       }
 
-      navigate('/dashboard/models')
+      navigate('/dashboard/models');
     } catch (error) {
-      console.error('Save failed:', error)
+      console.error('Save failed:', error);
     }
-  }
+  };
 
-  const isLoading = isLoadingModel || isCreating || isUpdating
+  const isLoading = isLoadingModel || isCreating || isUpdating;
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -66,7 +70,9 @@ export function CreateModelPage() {
           {isEditing ? '编辑模型' : '创建新模型'}
         </h1>
         <p className="mt-2 text-sm text-gray-700">
-          {isEditing ? '修改模型的配置和媒体文件。' : '创建一个新的 VR 模型并配置相关参数。'}
+          {isEditing
+            ? '修改模型的配置和媒体文件。'
+            : '创建一个新的 VR 模型并配置相关参数。'}
         </p>
       </div>
 
@@ -83,7 +89,10 @@ export function CreateModelPage() {
             </div>
             <div className="card-content space-y-4">
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   标题 *
                 </label>
                 <input
@@ -99,11 +108,18 @@ export function CreateModelPage() {
                     },
                   })}
                 />
-                {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
+                {errors.title && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.title.message}
+                  </p>
+                )}
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   描述
                 </label>
                 <textarea
@@ -119,7 +135,9 @@ export function CreateModelPage() {
                   })}
                 />
                 {errors.description && (
-                  <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.description.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -128,7 +146,9 @@ export function CreateModelPage() {
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">背景图片</h3>
-              <p className="card-description">上传模型的背景图片。支持 JPEG、PNG、GIF、WebP 格式，最大 10MB。</p>
+              <p className="card-description">
+                上传模型的背景图片。支持 JPEG、PNG、GIF、WebP 格式，最大 10MB。
+              </p>
             </div>
             <div className="card-content">
               <FileUpload
@@ -144,7 +164,9 @@ export function CreateModelPage() {
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">背景视频</h3>
-              <p className="card-description">上传模型的背景视频。支持 MP4、WebM、OGG 格式，最大 100MB。</p>
+              <p className="card-description">
+                上传模型的背景视频。支持 MP4、WebM、OGG 格式，最大 100MB。
+              </p>
             </div>
             <div className="card-content">
               <FileUpload
@@ -160,7 +182,9 @@ export function CreateModelPage() {
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">3D 模型文件</h3>
-              <p className="card-description">上传 3D 模型文件。支持 GLB、GLTF 格式，最大 200MB。</p>
+              <p className="card-description">
+                上传 3D 模型文件。支持 GLB、GLTF 格式，最大 200MB。
+              </p>
             </div>
             <div className="card-content">
               <FileUpload
@@ -192,10 +216,18 @@ export function CreateModelPage() {
           </div>
 
           <div className="flex justify-end space-x-3">
-            <button type="button" onClick={() => navigate('/dashboard/models')} className="btn btn-secondary">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/models')}
+              className="btn btn-secondary p-2"
+            >
               取消
             </button>
-            <button type="submit" disabled={isLoading} className="btn btn-primary disabled:opacity-50">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="btn btn-primary disabled:opacity-50 p-2"
+            >
               {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -209,5 +241,5 @@ export function CreateModelPage() {
         </form>
       )}
     </div>
-  )
+  );
 }

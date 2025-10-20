@@ -66,7 +66,7 @@ export function ModelListPage() {
             <p className="mt-2 text-sm text-gray-700">管理您的 VR 模型，包括背景图片、视频和相关配置。</p>
           </div>
           <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-            <Link to="/dashboard/models/create" className="btn btn-primary">
+            <Link to="/dashboard/models/create" className="btn btn-primary px-2 py-2">
               <PlusIcon className="w-4 h-4 mr-2" />
               创建模型
             </Link>
@@ -78,7 +78,7 @@ export function ModelListPage() {
             <div className="text-center py-12">
               <div className="text-gray-500 text-lg mb-4">还没有创建任何模型。</div>
               <Link to="/dashboard/models/create" className="btn btn-primary">
-                <PlusIcon className="w-4 h-4 mr-2" />
+                <PlusIcon className="w-4 h-4 mr-2 px-2 py-1" />
                 创建第一个模型
               </Link>
             </div>
