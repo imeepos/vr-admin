@@ -15,9 +15,6 @@ services:
       - DB_USERNAME=${DB_USERNAME:-postgres}
       - DB_PASSWORD=${DB_PASSWORD:-password}
       - DB_DATABASE=${DB_DATABASE:-vr_admin}
-      - REDIS_HOST=redis
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis123}
       - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
       - JWT_ISSUER=${JWT_ISSUER:-vr-admin}
@@ -74,29 +71,9 @@ services:
     networks:
       - vr-admin-network
 
-  # Redis 缓存服务 (可选)
-  redis:
-    image: redis:7-alpine
-    container_name: vr-admin-redis
-    restart: unless-stopped
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    command: redis-server --requirepass ${REDIS_PASSWORD:-redis123}
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    networks:
-      - vr-admin-network
-
 # 数据卷定义
 volumes:
   postgres_data:
-    driver: local
-  redis_data:
     driver: local
   uploads_data:
     driver: local
