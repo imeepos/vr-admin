@@ -43,10 +43,20 @@ export class FileUploadService {
     return allowedTypes.includes(mimetype);
   }
 
+  private isAllowedIOSModelType(mimetype: string): boolean {
+    const allowedTypes = ['model/vnd.usdz+zip', 'model/usdz', 'application/octet-stream'];
+    return allowedTypes.includes(mimetype);
+  }
+
   private isAllowed3DModelExtension(filename: string): boolean {
     const extension = this.getFileExtension(filename).toLowerCase();
     const allowedExtensions = ['glb', 'gltf'];
     return allowedExtensions.includes(extension);
+  }
+
+  private isAllowedIOSModelExtension(filename: string): boolean {
+    const extension = this.getFileExtension(filename).toLowerCase();
+    return extension === 'usdz';
   }
 
 
@@ -97,6 +107,24 @@ export class FileUploadService {
     }
 
     const filename = this.generateUniqueFilename(originalName);
+    return await this.storageAdapter.uploadFile(buffer, filename, correctMimeType);
+  }
+
+  async uploadIOSModel(buffer: Buffer, originalName: string, mimetype: string): Promise<UploadedFile> {
+    if (!this.isAllowedIOSModelType(mimetype) && !this.isAllowedIOSModelExtension(originalName)) {
+      throw new Error('Unsupported iOS model format. Only USDZ is allowed.');
+    }
+
+    if (buffer.length > 200 * 1024 * 1024) {
+      throw new Error('iOS model file size cannot exceed 200MB.');
+    }
+
+    const normalizedOriginalName = this.isAllowedIOSModelExtension(originalName)
+      ? originalName
+      : `${originalName}.usdz`;
+    const filename = this.generateUniqueFilename(normalizedOriginalName);
+    const correctMimeType = 'model/vnd.usdz+zip';
+
     return await this.storageAdapter.uploadFile(buffer, filename, correctMimeType);
   }
 

@@ -39,6 +39,7 @@ export function CreateModelPage() {
     null,
   );
   const [modelFile, setModelFile] = useState<File | null>(null);
+  const [iosModelFile, setIosModelFile] = useState<File | null>(null);
   const [isFullscreenMode, setIsFullscreenMode] = useState<boolean>(false);
 
   useEffect(() => {
@@ -55,6 +56,7 @@ export function CreateModelPage() {
         backgroundImage: backgroundImageFile || undefined,
         backgroundVideo: backgroundVideoFile || undefined,
         modelFile: modelFile || undefined,
+        iosModelFile: iosModelFile || undefined,
       };
 
       if (isEditing && id) {
@@ -186,6 +188,36 @@ export function CreateModelPage() {
 
           <div className="card">
             <div className="card-header">
+              <h3 className="card-title">USDZ 模型文件（iOS）</h3>
+              <p className="card-description">
+                可选上传针对 iOS AR 体验优化的 USDZ 模型文件，最大 200MB。
+              </p>
+            </div>
+            <div className="card-content">
+              <FileUpload
+                accept={['.usdz', 'model/vnd.usdz+zip', 'model/usdz']}
+                maxSize={200 * 1024 * 1024}
+                value={iosModelFile}
+                onChange={setIosModelFile}
+                preview={model?.iosModelFile}
+              />
+              {model?.iosModelFile && !iosModelFile && (
+                <div className="mt-4 text-sm text-gray-600">
+                  <a
+                    href={model.iosModelFile}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary-600 hover:underline break-all"
+                  >
+                    查看已上传的 USDZ 文件
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
               <h3 className="card-title">背景图片</h3>
               <p className="card-description">
                 上传模型的背景图片。支持 JPEG、PNG、GIF、WebP 格式，最大 10MB。
@@ -269,9 +301,11 @@ export function CreateModelPage() {
                   backgroundImageFile={backgroundImageFile}
                   backgroundVideoFile={backgroundVideoFile}
                   modelFile={modelFile}
+                  iosModelFile={iosModelFile}
                   backgroundImagePreview={model?.backgroundImage}
                   backgroundVideoPreview={model?.backgroundVideo}
                   modelFilePreview={model?.modelFile}
+                  iosModelFilePreview={model?.iosModelFile}
                   isMobilePreview={true}
                   onFullscreenModeChange={setIsFullscreenMode}
                 />

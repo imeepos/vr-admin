@@ -45,7 +45,7 @@ export interface CreateModelInput {
   modelFileSize?: number;
   modelFileType?: string;
   modelFileMimeType?: string;
-  iosModelFile?: string;
+  iosModelFile?: string | File;
 }
 
 export interface UpdateModelInput {
@@ -59,7 +59,7 @@ export interface UpdateModelInput {
   modelFileSize?: number;
   modelFileType?: string;
   modelFileMimeType?: string;
-  iosModelFile?: string;
+  iosModelFile?: string | File;
 }
 
 export interface LoginInput {

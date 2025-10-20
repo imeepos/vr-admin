@@ -11,9 +11,11 @@ interface ModelFormPreviewProps {
   backgroundImageFile?: File | null;
   backgroundVideoFile?: File | null;
   modelFile?: File | null;
+  iosModelFile?: File | null;
   backgroundImagePreview?: string;
   backgroundVideoPreview?: string;
   modelFilePreview?: string;
+  iosModelFilePreview?: string;
   isMobilePreview?: boolean;
   onFullscreenModeChange?: (isFullscreen: boolean) => void;
 }
@@ -24,15 +26,18 @@ export function ModelFormPreview({
   backgroundImageFile,
   backgroundVideoFile,
   modelFile,
+  iosModelFile,
   backgroundImagePreview,
   backgroundVideoPreview,
   modelFilePreview,
+  iosModelFilePreview,
   isMobilePreview = true,
   onFullscreenModeChange,
 }: ModelFormPreviewProps) {
   const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>('');
   const [backgroundVideoUrl, setBackgroundVideoUrl] = useState<string>('');
   const [modelUrl, setModelUrl] = useState<string>('');
+  const [iosModelUrl, setIosModelUrl] = useState<string>('');
   const [showViewInAr, setShowViewInAr] = useState<boolean>(false);
   const [isFullscreenMode, setIsFullscreenMode] = useState<boolean>(false);
 
@@ -123,6 +128,37 @@ export function ModelFormPreview({
       mounted = false;
     };
   }, [modelFile, modelFilePreview]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (iosModelFile) {
+      try {
+        const url = URL.createObjectURL(iosModelFile);
+        if (mounted) {
+          setIosModelUrl(url);
+        }
+        return () => {
+          URL.revokeObjectURL(url);
+        };
+      } catch (error) {
+        console.error('[ModelFormPreview] 创建 USDZ 模型 URL 失败:', error);
+        if (mounted) setIosModelUrl('');
+      }
+    } else if (iosModelFilePreview) {
+      if (mounted) setIosModelUrl(iosModelFilePreview);
+    } else if (mounted) {
+      setIosModelUrl('');
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [iosModelFile, iosModelFilePreview]);
+
+  useEffect(() => {
+    setShowViewInAr(Boolean(iosModelUrl));
+  }, [iosModelUrl]);
 
   const onModelLoad = useCallback((modelUrl: string) => {
     console.log(`[ModelFormPreview] 模型加载完成: ${modelUrl}`);
@@ -263,6 +299,8 @@ export function ModelFormPreview({
             transparent={true}
             cameraControls={true}
             autoRotate={true}
+            enableIOSExport={true}
+            iosModelUrl={iosModelUrl}
           />
 
           {/* AR Button */}
@@ -323,6 +361,8 @@ export function ModelFormPreview({
             transparent={true}
             cameraControls={true}
             autoRotate={true}
+            enableIOSExport={true}
+            iosModelUrl={iosModelUrl}
           />
 
           {/* AR Button */}

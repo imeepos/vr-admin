@@ -15,10 +15,12 @@ interface FileUploadProps {
 
 const VIDEO_REGEX = /\.(mp4|webm|ogg)(?:[?#].*)?$/i;
 const MODEL_REGEX = /\.(glb|gltf)(?:[?#].*)?$/i;
+const USDZ_REGEX = /\.usdz(?:[?#].*)?$/i;
 
 const isVideoSource = (source: string) => VIDEO_REGEX.test(source);
 
 const isModelSource = (source: string) => MODEL_REGEX.test(source);
+const isUSDZSource = (source: string) => USDZ_REGEX.test(source);
 
 export function FileUpload({
   accept = ['image/*'],
@@ -105,7 +107,35 @@ export function FileUpload({
       if (isModelSource(preview)) {
         return (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg">
-            <ModelPreview modelUrl={preview} className="w-full h-[600px]" />
+            <ModelPreview modelUrl={preview} enableIOSExport={true} className="w-full h-[600px]" />
+          </div>
+        );
+      }
+
+      if (isUSDZSource(preview)) {
+        return (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 border border-dashed border-gray-300 rounded-lg px-6 text-center text-gray-600">
+            <svg
+              className="w-12 h-12 text-gray-400 mb-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5v-9z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 12l9-4.5M12 12v9m0-9L3 7.5"
+              />
+            </svg>
+            <p className="font-medium">USDZ preview not available</p>
+            <p className="text-sm text-gray-500 mt-1">Linked iOS AR asset will be used.</p>
           </div>
         );
       }
@@ -130,14 +160,46 @@ export function FileUpload({
         );
       }
 
-      if (
-        value.type.includes('model') ||
-        value.name.endsWith('.glb') ||
-        value.name.endsWith('.gltf')
-      ) {
+      const isGLTFModel =
+        MODEL_REGEX.test(value.name) ||
+        value.type === 'model/gltf+json' ||
+        value.type === 'model/gltf-binary';
+
+      if (isGLTFModel) {
         return (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg">
-            <ModelPreview modelUrl={objectUrl} className="w-full h-[600px]" />
+            <ModelPreview modelUrl={objectUrl} enableIOSExport={true} className="w-full h-[600px]" />
+          </div>
+        );
+      }
+
+      const isUSDZFile =
+        USDZ_REGEX.test(value.name) || value.type === 'model/vnd.usdz+zip';
+
+      if (isUSDZFile) {
+        return (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 border border-dashed border-gray-300 rounded-lg px-6 text-center text-gray-600">
+            <svg
+              className="w-12 h-12 text-gray-400 mb-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5v-9z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 12l9-4.5M12 12v9m0-9L3 7.5"
+              />
+            </svg>
+            <p className="font-medium">USDZ file ready</p>
+            <p className="text-sm text-gray-500 mt-1">Test on an iOS device to verify AR.</p>
           </div>
         );
       }

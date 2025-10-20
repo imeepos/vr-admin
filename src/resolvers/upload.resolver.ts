@@ -78,7 +78,7 @@ export class UploadResolver {
   @UseGuards(AuthGuard)
   async uploadIOSModel(@Args('file', { type: () => GraphQLUpload }) file: GraphQLUploadArg) {
     return this.handleUpload(file, (buffer, filename, mimetype) =>
-      this.fileUploadService.upload3DModel(buffer, filename, mimetype),
+      this.fileUploadService.uploadIOSModel(buffer, filename, mimetype),
     );
   }
 

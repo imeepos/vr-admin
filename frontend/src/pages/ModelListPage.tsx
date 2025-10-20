@@ -212,10 +212,12 @@ export function ModelListPage() {
                   <div className="relative h-48 bg-gray-50">
                     <ModelPreview
                       modelUrl={model.modelFile}
+                      iosModelUrl={model.iosModelFile || undefined}
                       className="w-full h-full"
                       transparent={false}
                       cameraControls={true}
                       autoRotate={true}
+                      enableIOSExport={Boolean(model.iosModelFile)}
                     />
                   </div>
 
@@ -234,6 +236,11 @@ export function ModelListPage() {
                         {model.backgroundVideo && (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             视频
+                          </span>
+                        )}
+                        {model.iosModelFile && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            USDZ
                           </span>
                         )}
                       </div>
@@ -255,6 +262,19 @@ export function ModelListPage() {
                           <ClipboardIcon className="w-3 h-3 opacity-0 group-hover/uuid:opacity-100 transition-opacity" />
                         </button>
                       </div>
+                      {model.iosModelFile && (
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>iOS USDZ</span>
+                          <a
+                            href={model.iosModelFile}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-2 py-1 rounded text-xs font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 transition-colors"
+                          >
+                            打开
+                          </a>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <span>创建时间</span>
                         <span>

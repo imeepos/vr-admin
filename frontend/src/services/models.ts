@@ -8,6 +8,7 @@ import {
   UPLOAD_IMAGE_MUTATION,
   UPLOAD_VIDEO_MUTATION,
   UPLOAD_MODEL_MUTATION,
+  UPLOAD_IOS_MODEL_MUTATION,
   type CreateModelInput,
   type UpdateModelInput
 } from '@/generated/graphql'
@@ -85,6 +86,22 @@ export const modelService = {
       }
     }
 
+    if (data.iosModelFile) {
+      if (typeof data.iosModelFile === 'string') {
+        input.iosModelFile = data.iosModelFile
+      } else {
+        const uploadResult = await uploadRequest(UPLOAD_IOS_MODEL_MUTATION, {
+          file: data.iosModelFile
+        })
+        if (uploadResult.data?.uploadIOSModel?.success) {
+          const file = uploadResult.data.uploadIOSModel.file
+          input.iosModelFile = file.url
+        } else {
+          throw new Error('USDZ model upload failed')
+        }
+      }
+    }
+
     const response = await uploadRequest(CREATE_MODEL_MUTATION, { createModelInput: input })
     return response.createModel
   },
@@ -150,6 +167,22 @@ export const modelService = {
       }
     }
 
+    if (data.iosModelFile) {
+      if (typeof data.iosModelFile === 'string') {
+        input.iosModelFile = data.iosModelFile
+      } else {
+        const uploadResult = await uploadRequest(UPLOAD_IOS_MODEL_MUTATION, {
+          file: data.iosModelFile
+        })
+        if (uploadResult.data?.uploadIOSModel?.success) {
+          const file = uploadResult.data.uploadIOSModel.file
+          input.iosModelFile = file.url
+        } else {
+          throw new Error('USDZ model upload failed')
+        }
+      }
+    }
+
     // Handle 3D model metadata fields (if passed as strings)
     if (data.modelFileName) input.modelFileName = data.modelFileName
     if (data.modelFilePath) input.modelFilePath = data.modelFilePath
@@ -160,7 +193,8 @@ export const modelService = {
     // Use the appropriate request method based on whether we're uploading files
     const hasFiles = (data.backgroundImage && typeof data.backgroundImage !== 'string') ||
                    (data.backgroundVideo && typeof data.backgroundVideo !== 'string') ||
-                   (data.modelFile && typeof data.modelFile !== 'string')
+                   (data.modelFile && typeof data.modelFile !== 'string') ||
+                   (data.iosModelFile && typeof data.iosModelFile !== 'string')
 
     if (hasFiles) {
       const response = await uploadRequest(UPDATE_MODEL_MUTATION, { id, updateModelInput: input })
