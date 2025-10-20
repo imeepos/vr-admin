@@ -61,3 +61,6 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 /public/*.js
 /public/*.css
 /public/*.map
+
+# User uploads (static resources)
+/public/uploads/
