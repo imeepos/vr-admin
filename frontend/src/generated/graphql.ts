@@ -110,7 +110,7 @@ export interface UpdateModelMutation {
 }
 
 export interface DeleteModelMutation {
-  deleteModel: Model;
+  deleteModel: boolean;
 }
 
 export interface HardDeleteModelMutation {
@@ -325,30 +325,7 @@ export const UPDATE_MODEL_MUTATION = `
 
 export const DELETE_MODEL_MUTATION = `
   mutation DeleteModel($id: ID!) {
-    deleteModel(id: $id) {
-      id
-      uuid
-      title
-      description
-      backgroundImage
-      backgroundVideo
-      modelFile
-      modelFileName
-      modelFilePath
-      modelFileSize
-      modelFileType
-      modelFileMimeType
-      createdAt
-      updatedAt
-      deletedAt
-      createdBy {
-        id
-        username
-        email
-        createdAt
-        updatedAt
-      }
-    }
+    deleteModel(id: $id)
   }
 `;
 
