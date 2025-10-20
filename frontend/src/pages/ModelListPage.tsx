@@ -60,7 +60,7 @@ export function ModelListPage() {
         cancelText={options.cancelText}
         type={options.type}
       />
-      <div className="px-4 sm:px-6 lg:px-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <h1 className="text-2xl font-semibold text-gray-900">模型管理</h1>
