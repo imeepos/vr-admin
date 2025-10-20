@@ -9,6 +9,12 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    define: {
+      __NEEDLE_ENGINE_VERSION__: JSON.stringify(env.VITE_NEEDLE_ENGINE_VERSION),
+      __NEEDLE_ENGINE_GENERATOR__: JSON.stringify(env.VITE_NEEDLE_ENGINE_GENERATOR),
+      __NEEDLE_PROJECT_BUILD_TIME__: JSON.stringify(env.VITE_NEEDLE_PROJECT_BUILD_TIME),
+      __NEEDLE_PUBLIC_KEY__: JSON.stringify(env.VITE_NEEDLE_PUBLIC_KEY),
+    },
     build: {
       outDir: '../public',
       sourcemap: true,  // 开启 sourceMap
