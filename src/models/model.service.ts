@@ -21,11 +21,20 @@ export class ModelService {
     return this.modelRepository.save(model);
   }
 
-  async findAll(): Promise<Model[]> {
-    return this.modelRepository.find({
-      where: { isActive: true },
-      order: { createdAt: 'DESC' },
-    });
+  async findAll(search?: string): Promise<Model[]> {
+    const queryBuilder = this.modelRepository.createQueryBuilder('model')
+      .where('model.isActive = :isActive', { isActive: true });
+
+    if (search && search.trim()) {
+      queryBuilder.andWhere(
+        'LOWER(model.title) LIKE LOWER(:search)',
+        { search: `%${search.trim()}%` }
+      );
+    }
+
+    return queryBuilder
+      .orderBy('model.createdAt', 'DESC')
+      .getMany();
   }
 
   async findOne(id: string): Promise<Model | null> {

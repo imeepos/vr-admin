@@ -9,8 +9,10 @@ export class ModelResolver {
   constructor(private readonly modelService: ModelService) {}
 
   @Query(() => [Model])
-  async models(): Promise<Model[]> {
-    return this.modelService.findAll();
+  async models(
+    @Args('search', { type: () => String, nullable: true }) search?: string,
+  ): Promise<Model[]> {
+    return this.modelService.findAll(search);
   }
 
   @Query(() => Model, { nullable: true })

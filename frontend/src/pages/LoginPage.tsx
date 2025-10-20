@@ -183,24 +183,6 @@ export function LoginPage() {
                     </div>
                   </div>
                 )}
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <input
-                      id="remember"
-                      name="remember"
-                      type="checkbox"
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors"
-                    />
-                    <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
-                      记住我
-                    </label>
-                  </div>
-                  <a href="#" className="text-sm text-blue-600 hover:text-blue-500 transition-colors">
-                    忘记密码？
-                  </a>
-                </div>
-
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -219,15 +201,6 @@ export function LoginPage() {
                   )}
                 </button>
               </form>
-
-              <footer className="mt-8 text-center">
-                <p className="text-sm text-gray-600">
-                  还没有账户？
-                  <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition-colors ml-1">
-                    立即注册
-                  </a>
-                </p>
-              </footer>
             </div>
           </div>
         </div>

@@ -13,8 +13,8 @@ import {
 } from '@/generated/graphql'
 
 export const modelService = {
-  async getModels() {
-    const response = await authenticatedRequest(GET_MODELS_QUERY)
+  async getModels(search?: string) {
+    const response = await authenticatedRequest(GET_MODELS_QUERY, { search })
     return response.models
   },
 

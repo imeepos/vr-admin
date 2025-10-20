@@ -7,7 +7,7 @@ interface MobilePreviewFrameProps {
 
 export function MobilePreviewFrame({ children, className = '' }: MobilePreviewFrameProps) {
   return (
-    <div className={`flex justify-center items-center p-8 ${className}`}>
+    <div className={`flex justify-center items-center p-1 ${className}`}>
       <div className="relative">
         {/* 手机外壳 */}
         <div className="relative bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">

@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { modelService } from '@/services/models'
 import type { CreateModelInput, UpdateModelInput } from '@/generated/graphql'
 
-export function useModels() {
+export function useModels(search?: string) {
   const queryClient = useQueryClient()
 
   const {
@@ -10,8 +10,8 @@ export function useModels() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['models'],
-    queryFn: () => modelService.getModels(),
+    queryKey: ['models', search],
+    queryFn: () => modelService.getModels(search),
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 

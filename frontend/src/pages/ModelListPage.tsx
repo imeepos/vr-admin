@@ -1,16 +1,33 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useModels } from '@/hooks/useModels';
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useToast } from '@/hooks/useToast';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import { PlusIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { ModelPreview } from '@/components/ModelPreview';
+import { MobilePreviewModal } from '@/components/MobilePreviewModal';
+import {
+  PlusIcon,
+  TrashIcon,
+  PencilIcon,
+  DevicePhoneMobileIcon,
+  ClipboardIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import type { Model } from '@/generated/graphql';
 
 export function ModelListPage() {
-  const { models, isLoading, error, deleteModel, isDeleting } = useModels();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const { models, isLoading, error, deleteModel, isDeleting } =
+    useModels(searchQuery);
   const { isOpen, options, confirm, handleClose, handleConfirm } =
     useConfirmDialog();
   const { showSuccess, showError } = useToast();
+  const [previewModal, setPreviewModal] = useState<{
+    isOpen: boolean;
+    model: Model | null;
+  }>({ isOpen: false, model: null });
 
   const handleDelete = async (id: string) => {
     const confirmed = await confirm({
@@ -29,6 +46,39 @@ export function ModelListPage() {
         console.error('Delete failed:', err);
         showError('删除失败，请稍后重试');
       }
+    }
+  };
+
+  const handleMobilePreview = (model: Model) => {
+    setPreviewModal({ isOpen: true, model });
+  };
+
+  const closeMobilePreview = () => {
+    setPreviewModal({ isOpen: false, model: null });
+  };
+
+  const handleCopyUuid = async (uuid: string) => {
+    try {
+      await navigator.clipboard.writeText(uuid);
+      showSuccess('UUID已复制到剪贴板');
+    } catch (err) {
+      console.error('复制失败:', err);
+      showError('复制失败，请手动复制');
+    }
+  };
+
+  const handleSearch = () => {
+    setSearchQuery(searchInput.trim());
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput('');
+    setSearchQuery('');
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
     }
   };
 
@@ -79,129 +129,184 @@ export function ModelListPage() {
           </div>
         </div>
 
-        <div className="mt-8 flow-root">
+        {/* 搜索框 */}
+        <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex-1 max-w-md">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="按标题搜索模型..."
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleSearch} className="btn btn-primary p-2">
+              搜索
+            </button>
+            {searchQuery && (
+              <button
+                onClick={handleClearSearch}
+                className="btn btn-secondary p-2"
+              >
+                清空
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 搜索结果提示 */}
+        {searchQuery && (
+          <div className="mt-4 text-sm text-gray-600">
+            搜索关键词: "<span className="font-medium">{searchQuery}</span>"
+            {models.length > 0 && (
+              <span className="ml-2">找到 {models.length} 个结果</span>
+            )}
+          </div>
+        )}
+
+        <div className="mt-8">
           {models.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-gray-500 text-lg mb-4">
-                还没有创建任何模型。
-              </div>
-              <Link
-                to="/dashboard/models/create"
-                className="btn btn-primary p-2"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                创建第一个模型
-              </Link>
+              {searchQuery ? (
+                <div>
+                  <div className="text-gray-500 text-lg mb-4">
+                    没有找到匹配 "{searchQuery}" 的模型
+                  </div>
+                  <button
+                    onClick={handleClearSearch}
+                    className="btn btn-secondary  p-2"
+                  >
+                    清空搜索
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="text-gray-500 text-lg mb-4">
+                    还没有创建任何模型。
+                  </div>
+                  <Link
+                    to="/dashboard/models/create"
+                    className="btn btn-primary p-2"
+                  >
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    创建第一个模型
+                  </Link>
+                </div>
+              )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <div className="inline-block min-w-full py-2 align-middle">
-                <table className="min-w-full divide-y divide-gray-300">
-                  <thead>
-                    <tr>
-                      <th
-                        scope="col"
-                        className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0"
-                      >
-                        标题
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        UUID
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        描述
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        媒体文件
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        创建时间
-                      </th>
-                      <th
-                        scope="col"
-                        className="relative py-3.5 pl-3 pr-4 sm:pr-0"
-                      >
-                        <span className="sr-only">操作</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {models.map((model: Model) => (
-                      <tr key={model.id}>
-                        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                          {model.title}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <code className="bg-gray-100 px-2 py-1 rounded text-xs">
-                            {model.uuid}
-                          </code>
-                        </td>
-                        <td className="px-3 py-4 text-sm text-gray-500">
-                          <div className="max-w-xs truncate">
-                            {model.description || '-'}
-                          </div>
-                        </td>
-                        <td className="px-3 py-4 text-sm text-gray-500">
-                          <div className="flex space-x-2">
-                            {model.backgroundImage && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                图片
-                              </span>
-                            )}
-                            {model.backgroundVideo && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                视频
-                              </span>
-                            )}
-                            {!model.backgroundImage &&
-                              !model.backgroundVideo && (
-                                <span className="text-gray-400">—</span>
-                              )}
-                          </div>
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {models.map((model: Model) => (
+                <div
+                  key={model.id}
+                  className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200 group"
+                >
+                  {/* 模型预览区域 */}
+                  <div className="relative h-48 bg-gray-50">
+                    <ModelPreview
+                      modelUrl={model.modelFile}
+                      className="w-full h-full"
+                      transparent={false}
+                      cameraControls={true}
+                      autoRotate={true}
+                    />
+                  </div>
+
+                  {/* 模型信息 */}
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-lg font-semibold text-gray-900 truncate flex-1 mr-2">
+                        {model.title}
+                      </h3>
+                      <div className="flex space-x-1">
+                        {model.backgroundImage && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            图片
+                          </span>
+                        )}
+                        {model.backgroundVideo && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            视频
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      {model.description || '暂无描述'}
+                    </p>
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>UUID</span>
+                        <button
+                          onClick={() => handleCopyUuid(model.uuid)}
+                          className="inline-flex items-center bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded text-xs font-mono transition-colors group/uuid"
+                          title="点击复制UUID"
+                        >
+                          <span className="mr-1">{model.uuid}</span>
+                          <ClipboardIcon className="w-3 h-3 opacity-0 group-hover/uuid:opacity-100 transition-opacity" />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>创建时间</span>
+                        <span>
                           {new Date(model.createdAt).toLocaleDateString(
                             'zh-CN',
                           )}
-                        </td>
-                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                          <div className="flex justify-end space-x-2">
-                            <Link
-                              to={`/dashboard/models/${model.id}/edit`}
-                              className="text-primary-600 hover:text-primary-900"
-                            >
-                              <PencilIcon className="w-4 h-4" />
-                            </Link>
-                            <button
-                              onClick={() => handleDelete(model.id)}
-                              disabled={isDeleting}
-                              className="text-red-600 hover:text-red-900 disabled:opacity-50"
-                            >
-                              <TrashIcon className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 操作按钮 */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div className="flex space-x-2">
+                        <Link
+                          to={`/dashboard/models/${model.id}/edit`}
+                          className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                        >
+                          <PencilIcon className="w-4 h-4 mr-1" />
+                          编辑
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(model.id)}
+                          disabled={isDeleting}
+                          className="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                        >
+                          <TrashIcon className="w-4 h-4 mr-1" />
+                          删除
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => handleMobilePreview(model)}
+                        className="inline-flex items-center px-3 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                      >
+                        <DevicePhoneMobileIcon className="w-4 h-4 mr-1" />
+                        手机预览
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* 手机预览模态框 */}
+      <MobilePreviewModal
+        isOpen={previewModal.isOpen}
+        onClose={closeMobilePreview}
+        modelUrl={previewModal.model?.modelFile}
+        modelTitle={previewModal.model?.title || ''}
+      />
     </>
   );
 }

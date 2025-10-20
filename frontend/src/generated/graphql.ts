@@ -143,8 +143,8 @@ export interface RefreshTokenMutation {
 
 // GraphQL Operations (as strings)
 export const GET_MODELS_QUERY = `
-  query GetModels {
-    models {
+  query GetModels($search: String) {
+    models(search: $search) {
       id
       uuid
       title
