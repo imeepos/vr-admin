@@ -43,6 +43,11 @@ services:
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-8088}:80"
+    environment:
+      - VITE_NEEDLE_ENGINE_VERSION=4.9.3
+      - VITE_NEEDLE_ENGINE_GENERATOR=Unity 2022.3.62f1, Needle Engine Integration @4.8.9
+      - VITE_NEEDLE_PROJECT_BUILD_TIME=unknown
+      - VITE_NEEDLE_PUBLIC_KEY=npk_e2949e4fe0f7c4b7045dfef1c04b1841d2003d35a4977ca093fca0e3c948fb4d
     volumes:
       - uploads_data:/var/www/uploads:ro  # 只读挂载上传文件
     depends_on:
