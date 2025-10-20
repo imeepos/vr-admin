@@ -9,7 +9,7 @@ import type { Model } from '@/generated/graphql'
 export function ModelListPage() {
   const { models, isLoading, error, deleteModel, isDeleting } = useModels()
   const { isOpen, options, confirm, handleClose, handleConfirm } = useConfirmDialog()
-  const { showSuccess, showError } = useToast()
+  const { show } = useToast()
 
   const handleDelete = async (id: string) => {
     const confirmed = await confirm({
@@ -23,10 +23,10 @@ export function ModelListPage() {
     if (confirmed) {
       try {
         await deleteModel(id)
-        showSuccess('模型删除成功')
+        show('模型删除成功', 'success')
       } catch (err) {
         console.error('Delete failed:', err)
-        showError('删除失败，请稍后重试')
+        show('删除失败，请稍后重试', 'error')
       }
     }
   }
