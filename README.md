@@ -141,6 +141,11 @@ vr-admin/
 
 验签规则与 `RSASignTests.java` 保持一致：对响应 JSON 进行字段排序后拼接 `appName + timestamp` 再进行 SHA256withRSA 校验。后端提供 `SignatureService.verifySignature` 便于服务端自检。
 
+### 请求验签
+
+- 非 GraphQL 的 REST 请求需要在查询参数中携带 `sign` 与 `timestamp`，后端会基于请求体（优先）或查询参数进行验签。
+- 未通过验签的请求会返回 `401 Invalid signature`。
+
 ## 部署
 
 ### 生产环境部署

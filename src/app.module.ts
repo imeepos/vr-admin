@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -15,6 +15,7 @@ import jwtConfig from './config/jwt.config';
 import { createGraphQLConfig } from './config/graphql.config';
 import signatureConfig from './config/signature.config';
 import { SignatureModule } from './signature/signature.module';
+import { SignatureVerificationMiddleware } from './signature/signature-verification.middleware';
 
 @Module({
   imports: [
@@ -47,4 +48,8 @@ import { SignatureModule } from './signature/signature.module';
   controllers: [AppController],
   providers: [UploadResolver],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(SignatureVerificationMiddleware).forRoutes('*');
+  }
+}
