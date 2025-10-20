@@ -11,8 +11,8 @@ services:
       - NODE_ENV=production
       - APP_PORT=3002
       - DB_HOST=postgres
-      - DB_PORT=${DB_PORT:-5432}
       - APP_BASE_URL=${APP_BASE_URL:localhost:3002}
+      - DB_PORT=5432
       - DB_USERNAME=${DB_USERNAME:-postgres}
       - DB_PASSWORD=${DB_PASSWORD:-password}
       - DB_DATABASE=${DB_DATABASE:-vr_admin}
@@ -42,7 +42,7 @@ services:
     container_name: vr-admin-frontend
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "${FRONTEND_PORT:-8088}:80"
     volumes:
       - uploads_data:/var/www/uploads:ro  # 只读挂载上传文件
     depends_on:
@@ -55,8 +55,6 @@ services:
     image: postgres:16-alpine
     container_name: vr-admin-postgres
     restart: unless-stopped
-    ports:
-      - "${DB_PORT:-5432}:5432"
     environment:
       - POSTGRES_USER=${DB_USERNAME:-postgres}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
