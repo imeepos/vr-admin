@@ -15,7 +15,6 @@ import { FileUploadModule } from './upload/file-upload.module';
 import { AuthModule } from './auth/auth.module';
 import appConfig from './config/configuration';
 import databaseConfig from './config/database.config';
-import redisConfig from './config/redis.config';
 import jwtConfig from './config/jwt.config';
 import { createGraphQLConfig } from './config/graphql.config';
 import { GraphQLPlaygroundMiddleware } from './middleware/graphql-playground.middleware';
@@ -24,7 +23,7 @@ import { GraphQLPlaygroundMiddleware } from './middleware/graphql-playground.mid
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, redisConfig, jwtConfig],
+      load: [appConfig, databaseConfig, jwtConfig],
       envFilePath: '.env',
     }),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
