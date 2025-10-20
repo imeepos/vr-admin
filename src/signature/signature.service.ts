@@ -1,10 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createPrivateKey, createSign, KeyObject } from 'crypto';
+import {
+  createPrivateKey,
+  createPublicKey,
+  createSign,
+  createVerify,
+  KeyObject,
+} from 'crypto';
 
 interface SignatureConfig {
   privateKey?: string;
   appName?: string;
+  publicKey?: string;
 }
 
 interface SignatureResult {
@@ -17,26 +24,46 @@ export class SignatureService {
   private readonly logger = new Logger(SignatureService.name);
   private readonly appName: string;
   private readonly privateKey?: KeyObject;
+  private readonly publicKey?: KeyObject;
   private warnedMissingKey = false;
+  private warnedMissingPublicKey = false;
 
   constructor(private readonly configService: ConfigService) {
     const config = this.configService.get<SignatureConfig>('signature') ?? {};
     this.appName = config.appName ?? '';
     const privateKeyBase64 = config.privateKey;
+    const publicKeyBase64 = config.publicKey;
 
     if (!privateKeyBase64) {
       this.logMissingKeyWarning();
-      return;
     }
 
-    try {
-      this.privateKey = createPrivateKey({
-        key: Buffer.from(privateKeyBase64, 'base64'),
-        format: 'der',
-        type: 'pkcs8',
-      });
-    } catch (error) {
-      this.logger.error('Failed to parse RSA private key for response signing', error as Error);
+    if (privateKeyBase64) {
+      try {
+        this.privateKey = createPrivateKey({
+          key: Buffer.from(privateKeyBase64, 'base64'),
+          format: 'der',
+          type: 'pkcs8',
+        });
+      } catch (error) {
+        this.logger.error('Failed to parse RSA private key for response signing', error as Error);
+      }
+    }
+
+    if (!publicKeyBase64) {
+      this.logMissingPublicKeyWarning();
+    }
+
+    if (publicKeyBase64) {
+      try {
+        this.publicKey = createPublicKey({
+          key: Buffer.from(publicKeyBase64, 'base64'),
+          format: 'der',
+          type: 'spki',
+        });
+      } catch (error) {
+        this.logger.error('Failed to parse RSA public key for signature verification', error as Error);
+      }
     }
   }
 
@@ -61,12 +88,46 @@ export class SignatureService {
     };
   }
 
+  verifySignature(payload: unknown, signature: string, timestamp: number): boolean {
+    if (!this.publicKey) {
+      this.logMissingPublicKeyWarning();
+      return false;
+    }
+
+    if (!Number.isFinite(timestamp)) {
+      this.logger.warn('Invalid timestamp provided for signature verification');
+      return false;
+    }
+
+    try {
+      const canonicalPayload = this.canonicalize(payload);
+      const message = `${canonicalPayload}${this.appName}${timestamp}`;
+      const verifier = createVerify('RSA-SHA256');
+      verifier.update(message);
+      verifier.end();
+      const signatureBuffer = this.fromBase64Url(signature);
+      return verifier.verify(this.publicKey, signatureBuffer);
+    } catch (error) {
+      this.logger.warn('Signature verification failed', error as Error);
+      return false;
+    }
+  }
+
   private logMissingKeyWarning(): void {
     if (!this.warnedMissingKey) {
       this.logger.warn(
         'Signature private key is not configured. Response signatures are disabled.',
       );
       this.warnedMissingKey = true;
+    }
+  }
+
+  private logMissingPublicKeyWarning(): void {
+    if (!this.warnedMissingPublicKey) {
+      this.logger.warn(
+        'Signature public key is not configured. Signature verification is disabled.',
+      );
+      this.warnedMissingPublicKey = true;
     }
   }
 
@@ -174,10 +235,19 @@ export class SignatureService {
   }
 
   private toBase64Url(buffer: Buffer): string {
+    if (!Buffer.isBuffer(buffer)) {
+      return '';
+    }
     return buffer
       .toString('base64')
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/g, '');
+  }
+
+  private fromBase64Url(value: string): Buffer {
+    const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+    const padding = 4 - (normalized.length % 4 || 4);
+    return Buffer.from(normalized + '='.repeat(padding % 4), 'base64');
   }
 }

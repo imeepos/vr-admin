@@ -14,6 +14,9 @@ describe('SignatureService', () => {
   const privateKeyBase64 =
     'MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBALuMEhKXPN2566gnPlpjNM++kYLj2KylBZmg61RiHZTEkolfgMTsAzvEcf5p2wDgVE83dzcW3eeWkGJrxifUhxVx5DHiUbRrfCoNg1kCNsCG/LYMacM4UWnbJb2xSCMEFws+/Mhn9Ti+Dvb7suhl++xQBFr9RDt7cKUwxEl2NSmtAgMBAAECgYBIWXa3WUSPvKNeURVKxS6gXcHAnqj9oQOSCnP+L4N92n81I3SHgwyUR+o53RgxNFkR3jHNPLMKHhlA/paI0wHw6BhLtF8wGOtp4AiJoEjJFC0qOiOJCeyr7OZh7EXOwbBVwJ5QkWYSRaAeJXdDhKcrAz9TgOajOuvXp/uq36GXAQJBAPDXJx3Ba3gRJgfqj7GP0SiGUz8dxhFhQ4UPDsNnVtDXCC6uARibq1iyBUDlNeWjV2uPdqC3L9H8SoBqY5ySuo0CQQDHWil7kWTgbVD7wBkePeWJiPkI+wgNi6m7lhkKb3//qIQEGGlOG6WJ9CUNJv8nhAZMBQj5W30YbBX08za4wvOhAkA3tg1eXLe3doANpLzInjQL48at+v0uWAl+ZhVMLkNu288QvT+Tqa7hPYzpjhwBmt9GClGuq7FsKagyPGn+dhKhAkB2KOXfnR06vPC8V29L8ookDDD39rseNEMFsgDjo5UttveQ6ds49cAX1cNEWXHxPRryYiWgj27FVANrreEogD0hAkALvYfF6HqrodSKf6iUqXFxwvDs2vPZcVzvgH7MBPPhRFZmFOsPwOsvw62HgVA3aCHxINsppv2Kko3i3TmSFzuZ';
 
+  const publicKeyBase64 =
+    'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC7jBISlzzdueuoJz5aYzTPvpGC49ispQWZoOtUYh2UxJKJX4DE7AM7xHH+adsA4FRPN3c3Ft3nlpBia8Yn1IcVceQx4lG0a3wqDYNZAjbAhvy2DGnDOFFp2yW9sUgjBBcLPvzIZ/U4vg72+7LoZfvsUARa/UQ7e3ClMMRJdjUprQIDAQAB';
+
   let warnSpy: jest.SpyInstance;
   let errorSpy: jest.SpyInstance;
 
@@ -45,6 +48,7 @@ describe('SignatureService', () => {
       signature: {
         appName: 'sams-yunmall',
         privateKey: privateKeyBase64,
+        publicKey: publicKeyBase64,
       },
     });
 
@@ -97,6 +101,7 @@ describe('SignatureService', () => {
       signature: {
         appName: 'app',
         privateKey: privateKeyBase64,
+        publicKey: publicKeyBase64,
       },
     });
 
@@ -112,5 +117,62 @@ describe('SignatureService', () => {
     const canonical = (service as any).canonicalize(complexPayload);
     expect(canonical.includes('"handler":null')).toBe(true);
     expect(canonical.includes('"symbolKey":null')).toBe(true);
+  });
+
+  it('should verify signature using configured public key', () => {
+    const configService = new MockConfigService({
+      signature: {
+        appName: 'sams-yunmall',
+        privateKey: privateKeyBase64,
+        publicKey: publicKeyBase64,
+      },
+    });
+
+    const service = new SignatureService(configService as any);
+
+    const payload = { uid: '123', amount: 99.9 };
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(1_735_000_000_100);
+    const signature = service.signPayload(payload);
+    expect(signature).toBeTruthy();
+
+    const isValid = service.verifySignature(payload, signature!.sign, signature!.timestamp);
+    expect(isValid).toBe(true);
+    nowSpy.mockRestore();
+  });
+
+  it('should return false for invalid signature', () => {
+    const configService = new MockConfigService({
+      signature: {
+        appName: 'sams-yunmall',
+        privateKey: privateKeyBase64,
+        publicKey: publicKeyBase64,
+      },
+    });
+
+    const service = new SignatureService(configService as any);
+    const payload = { uid: '321' };
+    const signature = service.signPayload(payload);
+    expect(signature).toBeTruthy();
+
+    const isValid = service.verifySignature(payload, signature!.sign.slice(1), signature!.timestamp);
+    expect(isValid).toBe(false);
+  });
+
+  it('should return false when public key is missing', () => {
+    const configService = new MockConfigService({
+      signature: {
+        appName: 'sams-yunmall',
+        privateKey: privateKeyBase64,
+      },
+    });
+
+    const service = new SignatureService(configService as any);
+    const payload = { uid: '999' };
+    const result = service.verifySignature(payload, 'abc', Date.now());
+
+    expect(result).toBe(false);
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Signature public key is not configured. Signature verification is disabled.',
+    );
   });
 });
