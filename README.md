@@ -56,6 +56,10 @@ PORT=3001
 # 文件上传配置
 UPLOAD_DIR=./uploads
 BASE_URL=http://localhost:3001
+
+# 响应签名配置（可选，开启后返回头将包含 sign）
+SIGN_APP_NAME=sams-yunmall
+SIGN_PRIVATE_KEY=MIICdQIBADANB...Base64私钥...
 ```
 
 ### 数据库设置
@@ -126,6 +130,15 @@ vr-admin/
 
 - `POST /upload/image`: 上传图片
 - `POST /upload/video`: 上传视频
+
+### 响应签名
+
+如果配置了 `SIGN_PRIVATE_KEY` 与 `SIGN_APP_NAME`，所有 REST 与 GraphQL 响应都会增加以下头部，方便客户端验签：
+
+- `sign`: RSA-SHA256 的 URL 安全签名值
+- `sign-timestamp`: 生成签名时的毫秒时间戳
+
+验签规则与 `RSASignTests.java` 保持一致：对响应 JSON 进行字段排序后拼接 `appName + timestamp` 再进行 SHA256withRSA 校验。
 
 ## 部署
 

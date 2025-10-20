@@ -8,6 +8,7 @@ import { json, urlencoded } from 'express';
 import { join } from 'path';
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 import MaxHeaderExpressAdapter from './adapters/max-header-express.adapter';
+import { SignatureInterceptor } from './signature/signature.interceptor';
 
 async function bootstrap() {
   const parsedMaxHeaderSize = parseInt(
@@ -51,6 +52,7 @@ async function bootstrap() {
       'Apollo-Require-Preflight',
       'X-Requested-With'
     ],
+    exposedHeaders: ['sign', 'sign-timestamp'],
   };
 
   app.enableCors(corsOptions);
@@ -63,6 +65,7 @@ async function bootstrap() {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Access-Control-Expose-Headers', 'sign,sign-timestamp');
 
       // 为 3D 模型文件设置正确的 MIME 类型
       if (path.endsWith('.glb')) {
@@ -118,6 +121,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+  app.useGlobalInterceptors(app.get(SignatureInterceptor));
 
   const port = configService.get<number>('app.port') || 3002;
   await app.listen(port, '0.0.0.0');
@@ -127,5 +131,4 @@ async function bootstrap() {
   console.log(`💡 管理员账号将通过 migration 自动创建 (admin/admin123)`);
 }
 bootstrap();
-
 

@@ -13,12 +13,14 @@ import appConfig from './config/configuration';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import { createGraphQLConfig } from './config/graphql.config';
+import signatureConfig from './config/signature.config';
+import { SignatureModule } from './signature/signature.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, jwtConfig],
+      load: [appConfig, databaseConfig, jwtConfig, signatureConfig],
       envFilePath: '.env',
     }),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
@@ -40,6 +42,7 @@ import { createGraphQLConfig } from './config/graphql.config';
     ModelModule,
     FileUploadModule,
     AuthModule,
+    SignatureModule,
   ],
   controllers: [AppController],
   providers: [UploadResolver],
