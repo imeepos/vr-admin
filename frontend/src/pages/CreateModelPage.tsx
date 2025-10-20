@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useModels, useModel } from '@/hooks/useModels';
 import { FileUpload } from '@/components/FileUpload';
+import { ModelPreview } from '@/components/ModelPreview';
 import type { CreateModelInput, UpdateModelInput } from '@/generated/graphql';
 
 export function CreateModelPage() {
@@ -32,13 +33,26 @@ export function CreateModelPage() {
     null,
   );
   const [modelFile, setModelFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     if (isEditing && model) {
       setValue('title', model.title);
       setValue('description', model.description || '');
+      if (model.modelFile) {
+        setPreviewUrl(model.modelFile);
+      }
     }
   }, [isEditing, model, setValue]);
+
+  useEffect(() => {
+    if (modelFile) {
+      const objectUrl = URL.createObjectURL(modelFile);
+      setPreviewUrl(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    }
+  }, [modelFile]);
 
   const onSubmit = async (data: CreateModelInput) => {
     try {
@@ -212,8 +226,37 @@ export function CreateModelPage() {
                   </div>
                 </div>
               )}
+
+              {previewUrl && (
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="btn btn-secondary w-full"
+                  >
+                    {showPreview ? '隐藏预览' : '显示预览'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+
+          {showPreview && previewUrl && (
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">3D 模型预览</h3>
+                <p className="card-description">
+                  实时预览您的 3D 模型效果。
+                </p>
+              </div>
+              <div className="card-content">
+                <ModelPreview
+                  modelUrl={previewUrl}
+                  className="w-full h-[600px]"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end space-x-3">
             <button
