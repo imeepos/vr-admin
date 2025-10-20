@@ -31,6 +31,7 @@ type Model {
   modelFileSize: Float
   modelFileType: String
   modelFileMimeType: String
+  iosModelFile: String
   isActive: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -66,6 +67,7 @@ input CreateModelInput {
   modelFileSize: Float
   modelFileType: String
   modelFileMimeType: String
+  iosModelFile: String
   isActive: Boolean
 }
 
@@ -80,6 +82,7 @@ input UpdateModelInput {
   modelFileSize: Float
   modelFileType: String
   modelFileMimeType: String
+  iosModelFile: String
   isActive: Boolean
 }
 
