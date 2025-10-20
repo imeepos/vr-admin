@@ -74,7 +74,7 @@ export const uploadRequest = async (document: string, variables?: any) => {
 
       formData.append('map', JSON.stringify(map));
 
-      files.forEach(([key, value], index) => {
+      files.forEach(([_key, value], index) => {
         formData.append(index.toString(), value as File);
       });
 
