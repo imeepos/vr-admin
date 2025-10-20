@@ -12,6 +12,13 @@ interface FileUploadProps {
   className?: string
 }
 
+const VIDEO_REGEX = /\.(mp4|webm|ogg)(?:[?#].*)?$/i
+const MODEL_REGEX = /\.(glb|gltf)(?:[?#].*)?$/i
+
+const isVideoSource = (source: string) => VIDEO_REGEX.test(source)
+
+const isModelSource = (source: string) => MODEL_REGEX.test(source)
+
 export function FileUpload({
   accept = ['image/*'],
   maxSize = 10 * 1024 * 1024, // 10MB
@@ -68,7 +75,7 @@ export function FileUpload({
 
   const renderPreview = () => {
     if (preview) {
-      if (preview.includes('video')) {
+      if (isVideoSource(preview)) {
         return (
           <video
             src={preview}
@@ -76,8 +83,9 @@ export function FileUpload({
             className="w-full h-full object-cover rounded-lg"
           />
         )
-      } else if (preview.includes('model') || preview.endsWith('.glb') || preview.endsWith('.gltf')) {
-        // 3D模型文件预览 - 显示一个3D图标占位符
+      }
+
+      if (isModelSource(preview)) {
         return (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg">
             <div className="text-center">
@@ -89,15 +97,15 @@ export function FileUpload({
             </div>
           </div>
         )
-      } else {
-        return (
-          <img
-            src={preview}
-            alt="Preview"
-            className="w-full h-full object-cover rounded-lg"
-          />
-        )
       }
+
+      return (
+        <img
+          src={preview}
+          alt="Preview"
+          className="w-full h-full object-cover rounded-lg"
+        />
+      )
     }
 
     if (value) {
@@ -110,8 +118,9 @@ export function FileUpload({
             className="w-full h-full object-cover rounded-lg"
           />
         )
-      } else if (value.type.includes('model') || value.name.endsWith('.glb') || value.name.endsWith('.gltf')) {
-        // 3D模型文件预览 - 显示一个3D图标占位符
+      }
+
+      if (value.type.includes('model') || value.name.endsWith('.glb') || value.name.endsWith('.gltf')) {
         return (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg">
             <div className="text-center">
@@ -123,15 +132,15 @@ export function FileUpload({
             </div>
           </div>
         )
-      } else {
-        return (
-          <img
-            src={url}
-            alt="Preview"
-            className="w-full h-full object-cover rounded-lg"
-          />
-        )
       }
+
+      return (
+        <img
+          src={url}
+          alt="Preview"
+          className="w-full h-full object-cover rounded-lg"
+        />
+      )
     }
 
     return null
@@ -171,21 +180,13 @@ export function FileUpload({
           <input {...getInputProps()} />
           <CloudArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
           <div className="mt-4">
-            <p className="text-lg font-medium text-gray-900">
-              点击或拖拽文件到此处上传
-            </p>
-            <p className="text-sm text-gray-500 mt-1">
-              支持 {accept.join(', ')} 格式，最大 {Math.round(maxSize / 1024 / 1024)}MB
-            </p>
+            <p className="text-lg font-medium text-gray-900">点击或拖拽文件到此处上传</p>
+            <p className="text-sm text-gray-500 mt-1">支持 {accept.join(', ')} 格式，最大 {Math.round(maxSize / 1024 / 1024)}MB</p>
           </div>
         </div>
       )}
 
-      {error && (
-        <div className="mt-2 text-sm text-red-600">
-          {error}
-        </div>
-      )}
+      {error && <div className="mt-2 text-sm text-red-600">{error}</div>}
     </div>
   )
 }

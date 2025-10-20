@@ -25,6 +25,12 @@ type Model {
   description: String
   backgroundImage: String
   backgroundVideo: String
+  modelFile: String
+  modelFileName: String
+  modelFilePath: String
+  modelFileSize: Float
+  modelFileType: String
+  modelFileMimeType: String
   isActive: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -54,6 +60,12 @@ input CreateModelInput {
   description: String
   backgroundImage: String
   backgroundVideo: String
+  modelFile: String
+  modelFileName: String
+  modelFilePath: String
+  modelFileSize: Float
+  modelFileType: String
+  modelFileMimeType: String
   isActive: Boolean
 }
 
@@ -62,6 +74,12 @@ input UpdateModelInput {
   description: String
   backgroundImage: String
   backgroundVideo: String
+  modelFile: String
+  modelFileName: String
+  modelFilePath: String
+  modelFileSize: Float
+  modelFileType: String
+  modelFileMimeType: String
   isActive: Boolean
 }
 

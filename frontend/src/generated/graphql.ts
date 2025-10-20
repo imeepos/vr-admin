@@ -16,6 +16,12 @@ export interface Model {
   description?: string;
   backgroundImage?: string;
   backgroundVideo?: string;
+  modelFile?: string;
+  modelFileName?: string;
+  modelFilePath?: string;
+  modelFileSize?: number;
+  modelFileType?: string;
+  modelFileMimeType?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -145,6 +151,12 @@ export const GET_MODELS_QUERY = `
       description
       backgroundImage
       backgroundVideo
+      modelFile
+      modelFileName
+      modelFilePath
+      modelFileSize
+      modelFileType
+      modelFileMimeType
       createdAt
       updatedAt
       deletedAt
@@ -168,6 +180,12 @@ export const GET_MODEL_QUERY = `
       description
       backgroundImage
       backgroundVideo
+      modelFile
+      modelFileName
+      modelFilePath
+      modelFileSize
+      modelFileType
+      modelFileMimeType
       createdAt
       updatedAt
       deletedAt
@@ -191,6 +209,12 @@ export const GET_MODEL_BY_UUID_QUERY = `
       description
       backgroundImage
       backgroundVideo
+      modelFile
+      modelFileName
+      modelFilePath
+      modelFileSize
+      modelFileType
+      modelFileMimeType
       createdAt
       updatedAt
       deletedAt
@@ -250,6 +274,12 @@ export const CREATE_MODEL_MUTATION = `
       description
       backgroundImage
       backgroundVideo
+      modelFile
+      modelFileName
+      modelFilePath
+      modelFileSize
+      modelFileType
+      modelFileMimeType
       createdAt
       updatedAt
       deletedAt
@@ -273,6 +303,12 @@ export const UPDATE_MODEL_MUTATION = `
       description
       backgroundImage
       backgroundVideo
+      modelFile
+      modelFileName
+      modelFilePath
+      modelFileSize
+      modelFileType
+      modelFileMimeType
       createdAt
       updatedAt
       deletedAt
@@ -296,6 +332,12 @@ export const DELETE_MODEL_MUTATION = `
       description
       backgroundImage
       backgroundVideo
+      modelFile
+      modelFileName
+      modelFilePath
+      modelFileSize
+      modelFileType
+      modelFileMimeType
       createdAt
       updatedAt
       deletedAt

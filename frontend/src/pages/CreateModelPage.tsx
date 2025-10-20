@@ -79,9 +79,7 @@ export function CreateModelPage() {
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">基本信息</h3>
-              <p className="card-description">
-                设置模型的基本信息和描述。
-              </p>
+              <p className="card-description">设置模型的基本信息和描述。</p>
             </div>
             <div className="card-content space-y-4">
               <div>
@@ -101,9 +99,7 @@ export function CreateModelPage() {
                     },
                   })}
                 />
-                {errors.title && (
-                  <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-                )}
+                {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
               </div>
 
               <div>
@@ -132,9 +128,7 @@ export function CreateModelPage() {
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">背景图片</h3>
-              <p className="card-description">
-                上传模型的背景图片。支持 JPEG、PNG、GIF、WebP 格式，最大 10MB。
-              </p>
+              <p className="card-description">上传模型的背景图片。支持 JPEG、PNG、GIF、WebP 格式，最大 10MB。</p>
             </div>
             <div className="card-content">
               <FileUpload
@@ -150,9 +144,7 @@ export function CreateModelPage() {
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">背景视频</h3>
-              <p className="card-description">
-                上传模型的背景视频。支持 MP4、WebM、OGG 格式，最大 100MB。
-              </p>
+              <p className="card-description">上传模型的背景视频。支持 MP4、WebM、OGG 格式，最大 100MB。</p>
             </div>
             <div className="card-content">
               <FileUpload
@@ -167,10 +159,8 @@ export function CreateModelPage() {
 
           <div className="card">
             <div className="card-header">
-              <h3 className="card-title">3D模型文件</h3>
-              <p className="card-description">
-                上传3D模型文件。支持 GLB、GLTF 格式，最大 200MB。
-              </p>
+              <h3 className="card-title">3D 模型文件</h3>
+              <p className="card-description">上传 3D 模型文件。支持 GLB、GLTF 格式，最大 200MB。</p>
             </div>
             <div className="card-content">
               <FileUpload
@@ -183,9 +173,18 @@ export function CreateModelPage() {
               {model?.modelFile && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-md">
                   <div className="text-sm text-gray-600">
-                    <div><strong>文件名:</strong> {model.modelFileName}</div>
-                    <div><strong>文件大小:</strong> {(model.modelFileSize! / 1024 / 1024).toFixed(2)} MB</div>
-                    <div><strong>文件类型:</strong> {model.modelFileType?.toUpperCase()}</div>
+                    <div>
+                      <strong>文件名：</strong>
+                      {model.modelFileName}
+                    </div>
+                    <div>
+                      <strong>文件大小：</strong>
+                      {(model.modelFileSize! / 1024 / 1024).toFixed(2)} MB
+                    </div>
+                    <div>
+                      <strong>文件类型：</strong>
+                      {model.modelFileType?.toUpperCase()}
+                    </div>
                   </div>
                 </div>
               )}
@@ -193,27 +192,17 @@ export function CreateModelPage() {
           </div>
 
           <div className="flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={() => navigate('/dashboard/models')}
-              className="btn btn-secondary"
-            >
+            <button type="button" onClick={() => navigate('/dashboard/models')} className="btn btn-secondary">
               取消
             </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn btn-primary disabled:opacity-50"
-            >
+            <button type="submit" disabled={isLoading} className="btn btn-primary disabled:opacity-50">
               {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isEditing ? '更新中...' : '创建中...'}
+                  {isEditing ? '更新中…' : '创建中…'}
                 </>
               ) : (
-                <>
-                  {isEditing ? '更新模型' : '创建模型'}
-                </>
+                <>{isEditing ? '更新模型' : '创建模型'}</>
               )}
             </button>
           </div>

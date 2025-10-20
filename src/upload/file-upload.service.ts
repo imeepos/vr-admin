@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,16 +16,21 @@ export interface UploadedFile {
 export class FileUploadService {
   private readonly uploadDir = join(__dirname, '..', '..', 'public', 'uploads');
   private readonly baseUrl = 'http://localhost:3002';
+  private readonly logger = new Logger(FileUploadService.name);
 
   constructor() {
-    this.ensureUploadDir();
+    void this.ensureUploadDir();
+    this.logger.log('Upload directory resolved to: ' + this.uploadDir);
   }
 
   private async ensureUploadDir() {
+    this.logger.log('Ensuring upload directory: ' + this.uploadDir);
     try {
       await fs.access(this.uploadDir);
+      this.logger.log('Upload directory already exists: ' + this.uploadDir);
     } catch {
       await fs.mkdir(this.uploadDir, { recursive: true });
+      this.logger.log('Created upload directory: ' + this.uploadDir);
     }
   }
 
@@ -63,6 +68,7 @@ export class FileUploadService {
   private async saveFile(buffer: Buffer, filename: string): Promise<string> {
     await this.ensureUploadDir();
     const filePath = join(this.uploadDir, filename);
+    this.logger.log('Saving file to: ' + filePath + ' (size: ' + buffer.length + ' bytes)');
     await fs.writeFile(filePath, buffer);
     return filePath;
   }
@@ -157,4 +163,3 @@ export class FileUploadService {
     }
   }
 }
-

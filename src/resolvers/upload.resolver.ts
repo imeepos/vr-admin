@@ -1,6 +1,16 @@
 import { Resolver, Mutation, Args, ObjectType, Field } from '@nestjs/graphql';
 import { FileUploadService, UploadedFile as UploadedFileType } from '../upload/file-upload.service';
+import { Logger } from '@nestjs/common';
 import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
+
+interface GraphQLFileUpload {
+  filename: string;
+  mimetype: string;
+  encoding: string;
+  createReadStream: () => NodeJS.ReadableStream;
+}
+
+type GraphQLUploadArg = GraphQLFileUpload | Promise<GraphQLFileUpload>;
 
 @ObjectType()
 class GraphQLUploadedFile {
@@ -34,95 +44,61 @@ class UploadResult {
 
 @Resolver()
 export class UploadResolver {
+  private readonly logger = new Logger(UploadResolver.name);
+
   constructor(private readonly fileUploadService: FileUploadService) {}
 
   @Mutation(() => UploadResult, { name: 'uploadImage' })
-  async uploadImage(@Args('file', { type: () => GraphQLUpload }) file: Promise<any>) {
-    const { filename, mimetype, createReadStream } = await file;
-
-    // 将 stream 转换为 buffer
-    const stream = createReadStream();
-    const chunks: Buffer[] = [];
-
-    for await (const chunk of stream) {
-      chunks.push(chunk);
-    }
-
-    const buffer = Buffer.concat(chunks);
-
-    try {
-      const uploadedFile = await this.fileUploadService.uploadImage(
-        buffer,
-        filename,
-        mimetype,
-      );
-
-      return {
-        success: true,
-        file: uploadedFile,
-      };
-    } catch (error: any) {
-      throw new Error(error.message);
-    }
+  async uploadImage(@Args('file', { type: () => GraphQLUpload }) file: GraphQLUploadArg) {
+    return this.handleUpload(file, (buffer, filename, mimetype) =>
+      this.fileUploadService.uploadImage(buffer, filename, mimetype),
+    );
   }
 
   @Mutation(() => UploadResult, { name: 'uploadVideo' })
-  async uploadVideo(@Args('file', { type: () => GraphQLUpload }) file: Promise<any>) {
-    const { filename, mimetype, createReadStream } = await file;
-
-    // 将 stream 转换为 buffer
-    const stream = createReadStream();
-    const chunks: Buffer[] = [];
-
-    for await (const chunk of stream) {
-      chunks.push(chunk);
-    }
-
-    const buffer = Buffer.concat(chunks);
-
-    try {
-      const uploadedFile = await this.fileUploadService.uploadVideo(
-        buffer,
-        filename,
-        mimetype,
-      );
-
-      return {
-        success: true,
-        file: uploadedFile,
-      };
-    } catch (error: any) {
-      throw new Error(error.message);
-    }
+  async uploadVideo(@Args('file', { type: () => GraphQLUpload }) file: GraphQLUploadArg) {
+    return this.handleUpload(file, (buffer, filename, mimetype) =>
+      this.fileUploadService.uploadVideo(buffer, filename, mimetype),
+    );
   }
 
   @Mutation(() => UploadResult, { name: 'uploadModel' })
-  async uploadModel(@Args('file', { type: () => GraphQLUpload }) file: Promise<any>) {
-    const { filename, mimetype, createReadStream } = await file;
+  async uploadModel(@Args('file', { type: () => GraphQLUpload }) file: GraphQLUploadArg) {
+    return this.handleUpload(file, (buffer, filename, mimetype) =>
+      this.fileUploadService.upload3DModel(buffer, filename, mimetype),
+    );
+  }
 
-    // 将 stream 转换为 buffer
-    const stream = createReadStream();
-    const chunks: Buffer[] = [];
-
-    for await (const chunk of stream) {
-      chunks.push(chunk);
-    }
-
-    const buffer = Buffer.concat(chunks);
+  private async handleUpload(
+    file: GraphQLUploadArg,
+    uploader: (buffer: Buffer, filename: string, mimetype: string) => Promise<UploadedFileType>,
+  ): Promise<UploadResult> {
+    const { filename, mimetype, createReadStream } = await this.resolveUpload(file);
+    const buffer = await this.streamToBuffer(createReadStream());
 
     try {
-      const uploadedFile = await this.fileUploadService.upload3DModel(
-        buffer,
-        filename,
-        mimetype,
-      );
-
+      const uploadedFile = await uploader(buffer, filename, mimetype);
       return {
         success: true,
         file: uploadedFile,
       };
     } catch (error: any) {
-      throw new Error(error.message);
+      this.logger.error(`Upload failed for ${filename}`, error?.stack ?? error);
+      throw new Error(error?.message ?? 'Upload failed');
     }
+  }
+
+  private resolveUpload(file: GraphQLUploadArg): Promise<GraphQLFileUpload> {
+    return Promise.resolve(file);
+  }
+
+  private async streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
+    const chunks: Buffer[] = [];
+
+    for await (const chunk of stream as AsyncIterable<Buffer | string>) {
+      chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    }
+
+    return Buffer.concat(chunks);
   }
 }
