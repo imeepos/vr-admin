@@ -53,4 +53,9 @@ export class UpdateModelInput {
   @IsOptional()
   @IsString()
   modelFileMimeType?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  iosModelFile?: string;
 }

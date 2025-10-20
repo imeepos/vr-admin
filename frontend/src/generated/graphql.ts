@@ -22,6 +22,7 @@ export interface Model {
   modelFileSize?: number;
   modelFileType?: string;
   modelFileMimeType?: string;
+  iosModelFile?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -44,6 +45,7 @@ export interface CreateModelInput {
   modelFileSize?: number;
   modelFileType?: string;
   modelFileMimeType?: string;
+  iosModelFile?: string;
 }
 
 export interface UpdateModelInput {
@@ -57,6 +59,7 @@ export interface UpdateModelInput {
   modelFileSize?: number;
   modelFileType?: string;
   modelFileMimeType?: string;
+  iosModelFile?: string;
 }
 
 export interface LoginInput {
@@ -157,6 +160,7 @@ export const GET_MODELS_QUERY = `
       modelFileSize
       modelFileType
       modelFileMimeType
+      iosModelFile
       createdAt
       updatedAt
       deletedAt
@@ -186,6 +190,7 @@ export const GET_MODEL_QUERY = `
       modelFileSize
       modelFileType
       modelFileMimeType
+      iosModelFile
       createdAt
       updatedAt
       deletedAt
@@ -215,6 +220,7 @@ export const GET_MODEL_BY_UUID_QUERY = `
       modelFileSize
       modelFileType
       modelFileMimeType
+      iosModelFile
       createdAt
       updatedAt
       deletedAt
@@ -280,6 +286,7 @@ export const CREATE_MODEL_MUTATION = `
       modelFileSize
       modelFileType
       modelFileMimeType
+      iosModelFile
       createdAt
       updatedAt
       deletedAt
@@ -309,6 +316,7 @@ export const UPDATE_MODEL_MUTATION = `
       modelFileSize
       modelFileType
       modelFileMimeType
+      iosModelFile
       createdAt
       updatedAt
       deletedAt
@@ -443,6 +451,22 @@ export const UPLOAD_VIDEO_MUTATION = `
 export const UPLOAD_MODEL_MUTATION = `
   mutation UploadModel($file: Upload!) {
     uploadModel(file: $file) {
+      success
+      file {
+        filename
+        originalName
+        mimetype
+        size
+        url
+        path
+      }
+    }
+  }
+`;
+
+export const UPLOAD_IOS_MODEL_MUTATION = `
+  mutation UploadIOSModel($file: Upload!) {
+    uploadIOSModel(file: $file) {
       success
       file {
         filename

@@ -53,6 +53,10 @@ export class Model {
   @Column({ nullable: true })
   modelFileMimeType?: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  iosModelFile?: string;
+
   @Field()
   @Column({ default: true })
   isActive: boolean;

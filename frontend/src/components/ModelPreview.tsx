@@ -1,12 +1,16 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { useUSDZExport } from '@/hooks/useUSDZExport';
 
 interface ModelPreviewProps {
   modelUrl?: string;
+  modelId?: string;
   className?: string;
   onModelLoad?: (modelUrl: string) => void;
+  onIOSModelGenerated?: (iosModelUrl: string) => void;
   transparent?: boolean;
   cameraControls?: boolean;
   autoRotate?: boolean;
+  enableIOSExport?: boolean;
 }
 
 declare global {
@@ -34,19 +38,44 @@ const isServer = () => typeof window === 'undefined';
 
 export function ModelPreview({
   modelUrl,
+  modelId,
   className = '',
   onModelLoad,
+  onIOSModelGenerated,
   transparent = true,
   cameraControls = true,
-  autoRotate = true
+  autoRotate = true,
+  enableIOSExport = true
 }: ModelPreviewProps) {
   const needleEngineRef = useRef<HTMLElement | null>(null);
 
-  const handleModelLoad = useCallback(() => {
+  const { exportToUSDZ, isExporting } = useUSDZExport(
+    modelId || 'model',
+    {
+      autoExportAnimations: true,
+      autoExportAudioSources: true,
+      physics: true,
+    }
+  );
+
+  const handleModelLoad = useCallback(async () => {
     if (modelUrl && onModelLoad) {
       onModelLoad(modelUrl);
     }
-  }, [modelUrl, onModelLoad]);
+
+    if (enableIOSExport && modelId && !isExporting) {
+      try {
+        const result = await exportToUSDZ();
+
+        if (result.success && result.iosModelUrl && onIOSModelGenerated) {
+          onIOSModelGenerated(result.iosModelUrl);
+          console.log('[ModelPreview] iOS USDZ 模型生成成功:', result.iosModelUrl);
+        }
+      } catch (error) {
+        console.error('[ModelPreview] iOS USDZ 导出失败:', error);
+      }
+    }
+  }, [modelUrl, modelId, onModelLoad, onIOSModelGenerated, enableIOSExport, exportToUSDZ, isExporting]);
 
   useEffect(() => {
     if (isServer() || !modelUrl) return;
