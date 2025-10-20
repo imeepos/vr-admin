@@ -80,10 +80,12 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: vr-admin-cloudflared
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token eyJhIjoiMjVmNTU2YjhjMDZlOTEwZmIzMTE1YTZjNDdjMjViZjkiLCJ0IjoiYzFmZTE4ZmEtNWI1ZC00OTBhLWI1MWEtNTBiZGNiYzkwZGQwIiwicyI6IlpqRXpZamhsTXprdFlXUm1OUzAwWVdNekxUa3paREV0WldOaE5HUXlZekEzTWpjeCJ9
+    command: tunnel --no-autoupdate run 
     depends_on:
       - frontend
       - backend
+    environment:
+      - TUNNEL_TOKEN=eyJhIjoiMjVmNTU2YjhjMDZlOTEwZmIzMTE1YTZjNDdjMjViZjkiLCJ0IjoiYzFmZTE4ZmEtNWI1ZC00OTBhLWI1MWEtNTBiZGNiYzkwZGQwIiwicyI6IlpqRXpZamhsTXprdFlXUm1OUzAwWVdNekxUa3paREV0WldOaE5HUXlZekEzTWpjeCJ9
     networks:
       - vr-admin-network
 
