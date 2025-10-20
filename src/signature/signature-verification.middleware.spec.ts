@@ -24,7 +24,30 @@ describe('SignatureVerificationMiddleware', () => {
   });
 
   it('should skip verification for GraphQL requests', () => {
-    const req: any = { method: 'POST', path: '/graphql', query: {} };
+    const req: any = {
+      method: 'POST',
+      path: '/',
+      baseUrl: '/graphql',
+      originalUrl: '/graphql',
+      query: {},
+    };
+    const res = createResponseMock();
+    const next = jest.fn();
+
+    middleware.use(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    expect(signatureService.verifySignature).not.toHaveBeenCalled();
+  });
+
+  it('should skip verification for GraphQL requests with query params', () => {
+    const req: any = {
+      method: 'POST',
+      path: '/',
+      baseUrl: '/graphql',
+      originalUrl: '/graphql?operationName=Login',
+      query: {},
+    };
     const res = createResponseMock();
     const next = jest.fn();
 

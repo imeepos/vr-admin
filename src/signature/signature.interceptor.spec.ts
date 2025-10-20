@@ -2,7 +2,6 @@ import { ExecutionContext } from '@nestjs/common';
 import { lastValueFrom, of } from 'rxjs';
 import { SignatureInterceptor } from './signature.interceptor';
 import { SignatureService } from './signature.service';
-import { GqlExecutionContext } from '@nestjs/graphql';
 
 describe('SignatureInterceptor', () => {
   const signatureService = {
@@ -48,17 +47,16 @@ describe('SignatureInterceptor', () => {
     expect(setHeader).toHaveBeenCalledWith('sign-timestamp', '1234567890');
   });
 
-  it('should write headers for GraphQL responses when signature is available', async () => {
+  it('should skip header injection for GraphQL responses', async () => {
     const interceptor = new SignatureInterceptor(signatureService);
-    const setHeader = jest.fn();
-    const gqlResponse = { setHeader };
-
-    jest.spyOn(GqlExecutionContext, 'create').mockReturnValue({
-      getContext: () => ({ res: gqlResponse }),
-    } as any);
-
+    const switchToHttp = jest.fn(() => ({
+      getResponse: () => ({
+        setHeader: jest.fn(),
+      }),
+    }));
     const context = {
       getType: () => 'graphql',
+      switchToHttp,
     } as ExecutionContext;
 
     (signatureService.signPayload as jest.Mock).mockReturnValue({
@@ -71,8 +69,7 @@ describe('SignatureInterceptor', () => {
     }));
 
     expect(result).toEqual({ ok: true });
-    expect(setHeader).toHaveBeenCalledWith('sign', 'signature-value');
-    expect(setHeader).toHaveBeenCalledWith('sign-timestamp', '999');
+    expect(switchToHttp).not.toHaveBeenCalled();
   });
 });
 

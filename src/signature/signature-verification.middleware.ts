@@ -17,7 +17,10 @@ export class SignatureVerificationMiddleware implements NestMiddleware {
     }
 
     const graphqlPath = `/${this.configService.get<string>('app.graphqlPath', 'graphql')}`;
-    if (req.path.startsWith(graphqlPath)) {
+    const requestPath = this.getRequestPath(req);
+    console.log(`[SignatureMiddleware] Request path: ${requestPath}, GraphQL path: ${graphqlPath}`);
+    if (this.isGraphqlRequest(requestPath, graphqlPath)) {
+      console.log(`[SignatureMiddleware] Skipping signature verification for GraphQL path`);
       next();
       return;
     }
@@ -158,5 +161,22 @@ export class SignatureVerificationMiddleware implements NestMiddleware {
     }
 
     return value;
+  }
+
+  private getRequestPath(req: Request): string {
+    const originalUrl =
+      typeof req.originalUrl === 'string' && req.originalUrl.length > 0
+        ? req.originalUrl
+        : `${req.baseUrl || ''}${req.path || ''}`;
+
+    const pathOnly = originalUrl.split('?')[0] ?? '';
+    return pathOnly === '' ? '/' : pathOnly;
+  }
+
+  private isGraphqlRequest(requestPath: string, graphqlPath: string): boolean {
+    return (
+      requestPath === graphqlPath ||
+      requestPath.startsWith(`${graphqlPath}/`)
+    );
   }
 }
